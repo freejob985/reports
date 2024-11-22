@@ -87,7 +87,7 @@ require_once 'helpers/functions.php';
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
-    <script src="https://cdn.tiny.cloud/1/YOUR_API_KEY/tinymce/5/tinymce.min.js"></script>
+    <script src="https://cdn.tiny.cloud/1/1dho1iufg28k6retqsoh5b9hlqme73w2vm6u1z5bjfewe9fp/tinymce/5/tinymce.min.js"></script>
     <script src="assets/js/main.js"></script>
 </body>
 </html>

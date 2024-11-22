@@ -1,0 +1,33 @@
+/* الستايلات المخصصة */
+
+.task-card {
+    transition: all 0.3s ease;
+}
+
+.task-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.completed-task {
+    text-decoration: line-through;
+    opacity: 0.7;
+}
+
+
+/* تنسيق محرر النصوص المتقدم */
+
+.tox-tinymce {
+    border-radius: 0.5rem;
+}
+
+
+/* تنسيق رسائل toast */
+
+.toast-success {
+    background-color: #48bb78 !important;
+}
+
+.toast-error {
+    background-color: #f56565 !important;
+}

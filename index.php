@@ -26,6 +26,10 @@ require_once 'helpers/functions.php';
     <!-- الستايلات المخصصة -->
     <link rel="stylesheet" href="assets/css/style.css">
     
+    <!-- إضافة Favicon -->
+    <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+    <link rel="icon" type="image/png" href="assets/images/favicon.png">
+    
     <style>
         body {
             font-family: 'Tajawal', sans-serif;
@@ -34,24 +38,37 @@ require_once 'helpers/functions.php';
         
         /* تنعيم السكرول */
         ::-webkit-scrollbar {
-            width: 8px;
+            width: 10px;
+            height: 10px;
         }
         
         ::-webkit-scrollbar-track {
             background: #f1f1f1;
+            border-radius: 5px;
         }
         
         ::-webkit-scrollbar-thumb {
             background: #888;
-            border-radius: 4px;
+            border-radius: 5px;
+            transition: all 0.3s ease;
         }
         
         ::-webkit-scrollbar-thumb:hover {
             background: #555;
         }
+        
+        /* تنعيم الانتقالات */
+        .task-list-item {
+            transition: all 0.3s ease;
+        }
+        
+        .task-list-item:hover {
+            background-color: #f8fafc;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <!-- القائمة العلوية -->
     <nav class="bg-white shadow-lg">
@@ -72,7 +89,7 @@ require_once 'helpers/functions.php';
 
     <!-- محتوى الصفحة الرئيسي -->
     <main class="container mx-auto px-4 py-8">
-        <div id="tasksList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div id="tasksList" class="space-y-4">
             <!-- سيتم إضافة المهام هنا ديناميكياً -->
         </div>
     </main>

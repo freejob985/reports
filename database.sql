@@ -10,7 +10,11 @@ CREATE TABLE tasks (
     description TEXT,
     status BOOLEAN DEFAULT FALSE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    priority INT DEFAULT 0 COMMENT 'أولوية المهمة: 0=عادية, 1=منخفضة, 2=متوسطة, 3=عالية',
+    status_type ENUM('بحث', 'ايقاف', 'الغاء', 'تطوير', 'اجتماع', 'تأجيل', 'أولوية') DEFAULT 'بحث',
+    parent_id INT NULL COMMENT 'معرف المهمة الأب للمهام الفرعية',
+    FOREIGN KEY (parent_id) REFERENCES tasks(id) ON DELETE CASCADE
 );
 
 -- جدول التقارير
@@ -19,5 +23,18 @@ CREATE TABLE reports (
     task_id INT,
     content TEXT,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
+);
+
+-- إنشاء جدول المهام الفرعية
+CREATE TABLE subtasks (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    task_id INT NOT NULL,
+    title VARCHAR(255) NOT NULL,
+    description TEXT,
+    status BOOLEAN DEFAULT FALSE,
+    priority INT DEFAULT 0,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
 ); 

@@ -20,7 +20,7 @@ const initEditor = (selector) => {
 
 // دالة تحميل المهام
 const loadTasks = () => {
-    $.ajax({
+    return $.ajax({
         url: 'api/tasks.php',
         method: 'GET',
         success: function(response) {
@@ -35,98 +35,330 @@ const loadTasks = () => {
     });
 };
 
+// دالة الحصول على تسمية الأولوية
+const getPriorityLabel = (priority) => {
+    const labels = {
+        0: 'عادية',
+        1: 'منخفضة',
+        2: 'متوسطة',
+        3: 'عالية'
+    };
+    return labels[priority] || 'غير محدد';
+};
+
+// دالة إنشاء بطاقة المهمة
+const createTaskCard = (task) => {
+        return `
+        <div class="task-list-item bg-white rounded-lg shadow-sm p-4" data-task-id="${task.id}">
+            <div class="flex flex-col">
+                <!-- رأس المهمة -->
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="handle cursor-move">
+                            <i class="fas fa-grip-vertical text-gray-400"></i>
+                        </div>
+                        <input type="checkbox" class="task-checkbox" 
+                               data-task-id="${task.id}" 
+                               ${task.status ? 'checked' : ''}>
+                        <h3 class="text-lg font-semibold ${task.status ? 'line-through text-gray-500' : ''}">${task.title}</h3>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <span class="status-badge status-${task.status_type}">
+                            ${task.status_type}
+                        </span>
+                        <span class="priority-badge priority-${task.priority}">
+                            ${getPriorityLabel(task.priority)}
+                        </span>
+                        <div class="dropdown">
+                            <button class="btn btn-link" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" onclick="editTask(${task.id})">
+                                    <i class="fas fa-edit ml-2"></i>تعديل
+                                </a></li>
+                                <li><a class="dropdown-item" onclick="showStatusModal(${task.id})">
+                                    <i class="fas fa-exchange-alt ml-2"></i>تغيير الحالة
+                                </a></li>
+                                <li><a class="dropdown-item" onclick="deleteTask(${task.id})">
+                                    <i class="fas fa-trash ml-2"></i>حذف
+                                </a></li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- وصف المهمة -->
+                <p class="text-gray-600 mb-4">${task.description}</p>
+
+                <!-- المهام الفرعية -->
+                <div class="subtasks-container mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-sm font-semibold">المهام الفرعية</h4>
+                        <button onclick="showSubtaskForm(${task.id})" class="text-sm text-blue-500">
+                            <i class="fas fa-plus ml-1"></i>إضافة
+                        </button>
+                    </div>
+                    <ul class="subtasks-list space-y-2" data-parent-id="${task.id}">
+                        ${task.subtasks ? task.subtasks.map((subtask, index) => `
+                            <li class="subtask-item bg-gray-50 p-3 rounded-lg flex items-center justify-between" 
+                                data-subtask-id="${subtask.id}">
+                                <div class="flex items-center space-x-3">
+                                    <div class="handle cursor-move">
+                                        <i class="fas fa-grip-vertical text-gray-400"></i>
+                                    </div>
+                                    <span class="subtask-number">${index + 1}.</span>
+                                    <input type="checkbox" class="subtask-checkbox" 
+                                           ${subtask.status ? 'checked' : ''}>
+                                    <span class="${subtask.status ? 'line-through' : ''}">${subtask.title}</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="priority-badge priority-${subtask.priority}">
+                                        ${getPriorityLabel(subtask.priority)}
+                                    </span>
+                                    <button onclick="editSubtask(${subtask.id})" class="text-blue-500">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button onclick="deleteSubtask(${subtask.id})" class="text-red-500">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </li>
+                        `).join('') : ''}
+                    </ul>
+                </div>
+
+                <!-- التقارير -->
+                <div class="reports-container">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-sm font-semibold">التقارير والملاحظات</h4>
+                        <button onclick="showReportForm(${task.id})" class="text-sm text-blue-500">
+                            <i class="fas fa-plus ml-1"></i>إضافة
+                        </button>
+                    </div>
+                    <div class="reports-list space-y-3">
+                        ${task.reports ? task.reports.map(report => `
+                            <div class="report-item bg-gray-50 p-4 rounded-lg">
+                                <div class="report-content prose max-w-none">
+                                    ${report.content}
+                                </div>
+                                <div class="flex items-center justify-between mt-2 text-sm text-gray-500">
+                                    <span>${formatDate(report.created_at)}</span>
+                                    <div>
+                                        <button onclick="editReport(${report.id})" class="text-blue-500 mr-2">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button onclick="deleteReport(${report.id})" class="text-red-500">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('') : ''}
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+};
+
+// دالة إضافة مهمة فرعية
+const showSubtaskForm = (taskId) => {
+    Swal.fire({
+        title: 'إضافة مهمة فرعية',
+        html: `
+            <input id="subtaskTitle" class="swal2-input" placeholder="عنوان المهمة الفرعية">
+            <select id="subtaskPriority" class="swal2-select">
+                <option value="0">أولوية عادية</option>
+                <option value="1">أولوية منخفضة</option>
+                <option value="2">أولوية متوسطة</option>
+                <option value="3">أولوية عالية</option>
+            </select>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'إضافة',
+        cancelButtonText: 'إلغاء',
+        preConfirm: () => {
+            return {
+                title: document.getElementById('subtaskTitle').value,
+                priority: document.getElementById('subtaskPriority').value,
+                task_id: taskId
+            };
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            addSubtask(result.value);
+        }
+    });
+};
+
+// دالة إضافة مهمة فرعية للخادم
+const addSubtask = (subtaskData) => {
+    $.ajax({
+        url: 'api/subtasks.php',
+        method: 'POST',
+        data: subtaskData,
+        success: function(response) {
+            if (response.success) {
+                toastr.success('تم إضافة المهمة الفرعية بنجاح');
+                loadTasks();
+            } else {
+                toastr.error(response.message);
+            }
+        },
+        error: function() {
+            toastr.error('حدث خطأ أثناء إضافة المهمة الفرعية');
+        }
+    });
+};
+
+// تهيئة السحب والإفلات
+const initSortable = () => {
+    document.querySelectorAll('.subtasks-list').forEach(list => {
+        new Sortable(list, {
+            handle: '.handle',
+            animation: 150,
+            onEnd: function(evt) {
+                const subtaskId = evt.item.dataset.subtaskId;
+                const newIndex = evt.newIndex;
+                updateSubtaskOrder(subtaskId, newIndex);
+            }
+        });
+    });
+};
+
+// تحديث ترتيب المهام الفرعية
+const updateSubtaskOrder = (subtaskId, newIndex) => {
+    $.ajax({
+        url: 'api/subtasks.php',
+        method: 'PATCH',
+        data: JSON.stringify({
+            id: subtaskId,
+            order: newIndex
+        }),
+        contentType: 'application/json',
+        success: function(response) {
+            if (response.success) {
+                toastr.success('تم تحديث الترتيب بنجاح');
+            } else {
+                toastr.error(response.message);
+            }
+        },
+        error: function() {
+            toastr.error('حدث خطأ أثناء تحديث الترتيب');
+        }
+    });
+};
+
 // دالة إنشاء بطاقة المهمة
 const createTaskCard = (task) => {
     return `
-        <div class="task-list-item bg-white rounded-lg shadow-sm p-4">
-            <div class="flex items-start">
-                <!-- مؤشر الحالة والأولوية -->
-                <div class="flex flex-col items-center space-y-2 ml-4">
-                    <input type="checkbox" class="task-checkbox w-5 h-5" 
-                           data-task-id="${task.id}" 
-                           ${task.status ? 'checked' : ''}>
-                    <div class="status-badge status-${task.status_type}">
-                        ${task.status_type}
+        <div class="task-list-item bg-white rounded-lg shadow-sm p-4" data-task-id="${task.id}">
+            <div class="flex flex-col">
+                <!-- رأس المهمة -->
+                <div class="flex items-center justify-between mb-4">
+                    <div class="flex items-center space-x-4">
+                        <div class="handle cursor-move">
+                            <i class="fas fa-grip-vertical text-gray-400"></i>
+                        </div>
+                        <input type="checkbox" class="task-checkbox" 
+                               data-task-id="${task.id}" 
+                               ${task.status ? 'checked' : ''}>
+                        <h3 class="text-lg font-semibold ${task.status ? 'line-through text-gray-500' : ''}">${task.title}</h3>
                     </div>
-                    <div class="priority-badge priority-${task.priority}">
-                        ${getPriorityLabel(task.priority)}
+                    <div class="flex items-center space-x-2">
+                        <span class="status-badge status-${task.status_type}">
+                            ${task.status_type}
+                        </span>
+                        <span class="priority-badge priority-${task.priority}">
+                            ${getPriorityLabel(task.priority)}
+                        </span>
+                        <div class="dropdown">
+                            <button class="btn btn-link" data-bs-toggle="dropdown">
+                                <i class="fas fa-ellipsis-v"></i>
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" onclick="editTask(${task.id})">
+                                    <i class="fas fa-edit ml-2"></i>تعديل
+                                </a></li>
+                                <li><a class="dropdown-item" onclick="showStatusModal(${task.id})">
+                                    <i class="fas fa-exchange-alt ml-2"></i>تغيير الحالة
+                                </a></li>
+                                <li><a class="dropdown-item" onclick="deleteTask(${task.id})">
+                                    <i class="fas fa-trash ml-2"></i>حذف
+                                </a></li>
+                            </ul>
+                        </div>
                     </div>
                 </div>
-                
-                <!-- تفاصيل المهمة -->
-                <div class="flex-grow">
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-lg font-semibold ${task.status ? 'line-through text-gray-500' : ''}">${task.title}</h3>
-                        <div class="flex space-x-2">
-                            <button onclick="editTask(${task.id})" class="text-blue-500 hover:text-blue-700">
-                                <i class="fas fa-edit"></i>
-                            </button>
-                            <button onclick="deleteTask(${task.id})" class="text-red-500 hover:text-red-700">
-                                <i class="fas fa-trash"></i>
-                            </button>
-                        </div>
+
+                <!-- وصف المهمة -->
+                <p class="text-gray-600 mb-4">${task.description}</p>
+
+                <!-- المهام الفرعية -->
+                <div class="subtasks-container mb-4">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-sm font-semibold">المهام الفرعية</h4>
+                        <button onclick="showSubtaskForm(${task.id})" class="text-sm text-blue-500">
+                            <i class="fas fa-plus ml-1"></i>إضافة
+                        </button>
                     </div>
-                    
-                    <p class="text-gray-600 mt-2">${task.description}</p>
-                    
-                    <!-- المهام الفرعية -->
-                    ${task.subtasks && task.subtasks.length > 0 ? `
-                        <div class="subtasks-list">
-                            <h4 class="text-sm font-semibold text-gray-700 mb-2">
-                                <i class="fas fa-tasks ml-1"></i>المهام الفرعية
-                            </h4>
-                            <ul class="space-y-2">
-                                ${task.subtasks.map(subtask => `
-                                    <li class="flex items-center justify-between bg-gray-50 p-2 rounded">
-                                        <div class="flex items-center">
-                                            <input type="checkbox" 
-                                                   class="subtask-checkbox mr-2" 
-                                                   data-subtask-id="${subtask.id}"
-                                                   ${subtask.status ? 'checked' : ''}>
-                                            <span class="${subtask.status ? 'line-through text-gray-500' : ''}">${subtask.title}</span>
-                                        </div>
-                                        <span class="priority-badge priority-${subtask.priority}">
-                                            ${getPriorityLabel(subtask.priority)}
-                                        </span>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        </div>
-                    ` : ''}
-                    
-                    <!-- التقارير -->
-                    ${task.reports && task.reports.length > 0 ? `
-                        <div class="reports-list">
-                            <h4 class="text-sm font-semibold text-gray-700 mb-2">
-                                <i class="fas fa-file-alt ml-1"></i>التقارير
-                            </h4>
-                            <ul class="space-y-2">
-                                ${task.reports.map(report => `
-                                    <li class="bg-gray-50 p-3 rounded">
-                                        <div class="text-sm">${report.content}</div>
-                                        <div class="text-xs text-gray-500 mt-2">
-                                            ${formatDate(report.created_at)}
-                                        </div>
-                                    </li>
-                                `).join('')}
-                            </ul>
-                        </div>
-                    ` : ''}
-                    
-                    <!-- أزرار الإجراءات -->
-                    <div class="mt-4 flex items-center space-x-4">
-                        <button onclick="addSubtask(${task.id})" 
-                                class="text-sm text-blue-500 hover:text-blue-700">
-                            <i class="fas fa-plus ml-1"></i>مهمة فرعية
+                    <ul class="subtasks-list space-y-2" data-parent-id="${task.id}">
+                        ${task.subtasks ? task.subtasks.map((subtask, index) => `
+                            <li class="subtask-item bg-gray-50 p-3 rounded-lg flex items-center justify-between" 
+                                data-subtask-id="${subtask.id}">
+                                <div class="flex items-center space-x-3">
+                                    <div class="handle cursor-move">
+                                        <i class="fas fa-grip-vertical text-gray-400"></i>
+                                    </div>
+                                    <span class="subtask-number">${index + 1}.</span>
+                                    <input type="checkbox" class="subtask-checkbox" 
+                                           ${subtask.status ? 'checked' : ''}>
+                                    <span class="${subtask.status ? 'line-through' : ''}">${subtask.title}</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span class="priority-badge priority-${subtask.priority}">
+                                        ${getPriorityLabel(subtask.priority)}
+                                    </span>
+                                    <button onclick="editSubtask(${subtask.id})" class="text-blue-500">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button onclick="deleteSubtask(${subtask.id})" class="text-red-500">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </li>
+                        `).join('') : ''}
+                    </ul>
+                </div>
+
+                <!-- التقارير -->
+                <div class="reports-container">
+                    <div class="flex items-center justify-between mb-2">
+                        <h4 class="text-sm font-semibold">التقارير والملاحظات</h4>
+                        <button onclick="showReportForm(${task.id})" class="text-sm text-blue-500">
+                            <i class="fas fa-plus ml-1"></i>إضافة
                         </button>
-                        <button onclick="showReports(${task.id})" 
-                                class="text-sm text-blue-500 hover:text-blue-700">
-                            <i class="fas fa-file-alt ml-1"></i>إضافة تقرير
-                        </button>
-                        <button onclick="changeStatus(${task.id})" 
-                                class="text-sm text-blue-500 hover:text-blue-700">
-                            <i class="fas fa-exchange-alt ml-1"></i>تغيير الحالة
-                        </button>
+                    </div>
+                    <div class="reports-list space-y-3">
+                        ${task.reports ? task.reports.map(report => `
+                            <div class="report-item bg-gray-50 p-4 rounded-lg">
+                                <div class="report-content prose max-w-none">
+                                    ${report.content}
+                                </div>
+                                <div class="flex items-center justify-between mt-2 text-sm text-gray-500">
+                                    <span>${formatDate(report.created_at)}</span>
+                                    <div>
+                                        <button onclick="editReport(${report.id})" class="text-blue-500 mr-2">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button onclick="deleteReport(${report.id})" class="text-red-500">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        `).join('') : ''}
                     </div>
                 </div>
             </div>
@@ -291,7 +523,7 @@ const deleteTask = (taskId) => {
     });
 };
 
-// دالة تحديث حالة المهمة
+// دالة تحيث حالة المهمة
 const updateTaskStatus = (taskId, status) => {
     $.ajax({
         url: 'api/tasks.php',
@@ -434,7 +666,7 @@ const exportAllTasks = () => {
             // إنشاء محتوى PDF لجميع المهام
             const content = `
                 <div class="pdf-container" dir="rtl" style="font-family: 'Tajawal', sans-serif; padding: 20px;">
-                    <h1 style="text-align: center; color: #2563eb; margin-bottom: 30px;">تقرير جميع المهام</h1>
+                    <h1 style="text-align: center; color: #2563eb; margin-bottom: 30px;">تقرير جمي المهام</h1>
                     
                     ${tasks.map(task => `
                         <div class="task-section" style="margin-bottom: 30px;">
@@ -490,7 +722,9 @@ const exportAllTasks = () => {
 // تهيئة الأحداث عند تحميل الصفحة
 $(document).ready(function() {
     // تحميل المهام
-    loadTasks();
+    loadTasks().then(() => {
+        initSortable();
+    });
 
     // إضافة مهمة جديدة
     $('#addTaskBtn').click(function() {

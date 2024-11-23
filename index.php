@@ -880,6 +880,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.js"></script>
     <script src="https://cdn.tiny.cloud/1/7e1mldkbut3yp4tyeob9lt5s57pb8wrb5fqbh11d6n782gm7/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+    <script src="assets/js/js.js"></script>
+
     <script src="assets/js/main.js"></script>
     <script src="assets/js/subtasks.js"></script>
     <script src="assets/js/reports.js"></script>

@@ -168,7 +168,7 @@
                 if (unit === 'شهر' && interval >= 3 && interval <= 10) {
                     return `منذ ${interval} أشهر`;
                 }
-                return `منذ ${interval} ${unit}${interval > 2 ? 'ات' : ''}`;
+                return `منذ ${interval} ${unit}${interval > 2 ? '' : ''}`;
             }
         }
 

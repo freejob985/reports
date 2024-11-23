@@ -18,34 +18,184 @@
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Tajawal:wght@200;300;400;500;700;800;900&display=swap" rel="stylesheet">
     
     <style>
+        :root {
+            --primary-gradient: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+            --secondary-gradient: linear-gradient(135deg, #FF9800 0%, #FF5722 100%);
+        }
+
         body {
             font-family: 'Tajawal', sans-serif;
+            background-color: #f5f5f5;
         }
-        .task-status-pending { background-color: #fff3cd; }
-        .task-status-in-progress { background-color: #cfe2ff; }
-        .task-status-completed { background-color: #d1e7dd; }
-        .task-status-cancelled { background-color: #f8d7da; }
+
+        /* تصميم الهيدر */
+        .app-header {
+            background: var(--primary-gradient);
+            color: white;
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+
+        .app-header h1 {
+            font-family: 'Cairo', sans-serif;
+            font-weight: 700;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        /* تصميم الفوتر */
+        .app-footer {
+            background: var(--secondary-gradient);
+            color: white;
+            padding: 1.5rem 0;
+            margin-top: 3rem;
+            box-shadow: 0 -4px 6px rgba(0,0,0,0.1);
+        }
+
+        /* تصميم البطاقات */
+        .task-card {
+            background: white;
+            border: none;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            margin-bottom: 1.5rem;
+        }
+
+        .task-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .task-card .card-header {
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 12px 12px 0 0;
+            padding: 1rem;
+            border: none;
+        }
+
+        .task-card .card-body {
+            padding: 1.5rem;
+        }
+
+        /* تصميم الأقسام الداخلية */
+        .subtasks-section, .reports-section {
+            background-color: #f8f9fa;
+            border-radius: 8px;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        /* تصميم شريط التقدم */
+        .progress {
+            height: 12px;
+            border-radius: 6px;
+            background-color: #e9ecef;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+
+        .progress-bar {
+            background: var(--primary-gradient);
+            transition: width 0.5s ease;
+        }
+
+        /* تصميم الأزرار */
+        .btn-primary {
+            background: var(--primary-gradient);
+            border: none;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary-gradient);
+            transform: translateY(-1px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        /* تصميم البطاقات الفرعية */
+        .list-group-item {
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        /* تصميم الشارات */
+        .badge {
+            padding: 0.5em 1em;
+            border-radius: 50px;
+            font-weight: 500;
+        }
+
+        /* تحسينات للنموذج */
+        .modal-content {
+            border-radius: 12px;
+            border: none;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+
+        .modal-header {
+            background: var(--primary-gradient);
+            color: white;
+            border-radius: 12px 12px 0 0;
+            border: none;
+        }
+
+        .modal-footer {
+            border-top: 1px solid rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
-    <div class="container mt-4">
-        <h1 class="text-center mb-4">نظام إدارة المهام</h1>
-        
+    <!-- الهيدر -->
+    <header class="app-header">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-12 text-center">
+                    <h1>نظام إدارة المهام</h1>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- المحتوى الرئيسي -->
+    <main class="container">
         <!-- إجمالي تقدم المهام -->
-        <div class="progress mb-4" style="height: 25px;">
-            <div class="progress-bar" role="progressbar" id="overall-progress" style="width: 0%">0%</div>
+        <div class="card mb-4">
+            <div class="card-body">
+                <h5 class="card-title mb-3">التقدم الإجمالي</h5>
+                <div class="progress" style="height: 25px;">
+                    <div class="progress-bar" role="progressbar" id="overall-progress" style="width: 0%">0%</div>
+                </div>
+            </div>
         </div>
 
         <!-- زر إضافة مهمة جديدة -->
-        <button class="btn btn-primary mb-4" onclick="showAddTaskModal()">
-            <i class="fas fa-plus"></i> إضافة مهمة جديدة
-        </button>
+        <div class="text-center mb-4">
+            <button class="btn btn-primary btn-lg" onclick="showAddTaskModal()">
+                <i class="fas fa-plus"></i> إضافة مهمة جديدة
+            </button>
+        </div>
 
         <!-- قائمة المهام -->
-        <div id="tasks-list" class="list-group">
+        <div id="tasks-list">
             <!-- سيتم إضافة المهام هنا ديناميكياً -->
         </div>
-    </div>
+    </main>
+
+    <!-- الفوتر -->
+    <footer class="app-footer">
+        <div class="container">
+            <div class="row">
+                <div class="col-12 text-center">
+                    <p class="mb-0">جميع الحقوق محفوظة &copy; 2024</p>
+                </div>
+            </div>
+        </div>
+    </footer>
 
     <!-- نموذج إضافة/تعديل المهمة -->
     <div class="modal fade" id="taskModal" tabindex="-1">

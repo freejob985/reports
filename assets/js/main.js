@@ -28,7 +28,7 @@ $(document).ready(function() {
     loadTasks();
 });
 
-// د��لة تحميل المهام من قاعدة البيانات
+// دالة تحميل المهام من قاعدة البيانات
 function loadTasks() {
     $.ajax({
         url: 'api/tasks.php',
@@ -221,7 +221,7 @@ function saveTask() {
 }
 
 /**
- * دالة للحصو�� على النص العربي للحالة
+ * دالة للحصول على النص العربي للحالة
  * @param {string} status - حالة المهمة
  * @returns {string} - النص العربي للحالة
  */
@@ -789,66 +789,20 @@ function toggleSubtaskSelection(subtaskId) {
     label.toggleClass('selected-subtask');
 }
 
-/**
- * تحديث الإحصائيات مع تأثيرات حركية
- * @param {Object} stats - كائن يحتوي على الإحصائيات
- */
+// إضافة دالة تحديث الإحصائيات
 function updateStats() {
-    const stats = {
-        total: tasks.length,
-        completed: tasks.filter(t => t.status === 'completed').length,
-        pending: tasks.filter(t => t.status === 'pending').length,
-        inProgress: tasks.filter(t => t.status === 'in-progress').length
-    };
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter(t => t.status === 'completed').length;
+    const pendingTasks = tasks.filter(t => t.status === 'pending').length;
+    const inProgressTasks = tasks.filter(t => t.status === 'in-progress').length;
 
-    // تحديث شارات الهيدر مع تأثير حركي
-    animateCounter('#total-tasks', stats.total);
-    animateCounter('#completed-tasks', stats.completed);
-    animateCounter('#pending-tasks', stats.pending);
+    // تحديث إحصائيات الهيدر
+    $('#total-tasks').text(totalTasks);
+    $('#completed-tasks').text(completedTasks);
+    $('#pending-tasks').text(pendingTasks);
 
-    // تحديث شارات الفوتر مع تأثير حركي
-    animateCounter('#footer-total', stats.total);
-    animateCounter('#footer-completed', stats.completed);
-    animateCounter('#footer-progress', stats.inProgress);
-
-    // إضافة تأثير وميض للشارات عند التحديث
-    $('.badge').addClass('badge-updated');
-    setTimeout(() => {
-        $('.badge').removeClass('badge-updated');
-    }, 500);
+    // تحديث إحصائيات الفوتر
+    $('#footer-total').text(totalTasks);
+    $('#footer-completed').text(completedTasks);
+    $('#footer-progress').text(inProgressTasks);
 }
-
-/**
- * دالة لإضافة تأثير حركي للعدادات
- * @param {string} selector - محدد العنصر
- * @param {number} endValue - القيمة النهائية
- */
-function animateCounter(selector, endValue) {
-    const $element = $(selector);
-    const startValue = parseInt($element.text()) || 0;
-
-    $({ value: startValue }).animate({ value: endValue }, {
-        duration: 500,
-        easing: 'swing',
-        step: function() {
-            $element.text(Math.floor(this.value));
-        },
-        complete: function() {
-            $element.text(endValue);
-        }
-    });
-}
-
-// إضافة CSS للتأثير الحركي
-$('<style>')
-    .text(`
-        @keyframes badgeUpdate {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.2); }
-            100% { transform: scale(1); }
-        }
-        .badge-updated {
-            animation: badgeUpdate 0.5s ease;
-        }
-    `)
-    .appendTo('head');

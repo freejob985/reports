@@ -175,112 +175,58 @@
         return 'الآن';
     }
 
-    /**
-     * تحديث عرض التقارير مع إضافة الشارات
-     * @param {number} taskId - معرف المهمة
-     * @param {Array} reports - مصفوفة التقارير
-     */
+    // تعديل دالة renderTaskReports
     window.renderTaskReports = function(taskId, reports) {
         const reportsList = $(`#reports-list-${taskId}`);
         reportsList.empty();
 
-        // إضافة عنوان مع شارة عدد التقارير
-        reportsList.append(`
-            <div class="reports-header mb-3">
-                <h6 class="d-flex align-items-center">
-                    <span>التقارير</span>
-                    <span class="badge bg-primary rounded-pill ms-2">${reports.length}</span>
-                </h6>
-            </div>
-        `);
-
         if (!reports || reports.length === 0) {
-            reportsList.append(`
-                <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i>
-                    لا توجد تقارير
-                </div>
-            `);
+            reportsList.append('<div class="text-muted">لا توجد تقارير</div>');
             return;
         }
 
         reports.forEach(report => {
             const timeAgoText = timeAgo(report.created_at);
-            const reportDate = new Date(report.created_at.replace(' ', 'T')).toLocaleString('ar-SA');
+            const reportDate = new Date(report.created_at.replace(' ', 'T')).toLocaleString('ar-SA', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric'
+            });
 
             const reportElement = $(`
                 <div class="card mb-2 report-card" data-report-id="${report.id}">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center">
-                            <span class="badge bg-info me-2">
-                                <i class="fas fa-clock"></i>
-                                ${timeAgoText}
-                            </span>
-                            <small class="text-muted">${reportDate}</small>
+                        <div>
+                            <span class="time-ago">${timeAgoText}</span>
+                            <small class="text-muted ms-2">${reportDate}</small>
                         </div>
                         <div class="btn-group">
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="editReport(${report.id}, ${taskId})"
-                                    data-bs-toggle="tooltip"
-                                    title="تعديل التقرير">
+                            <button class="btn btn-sm btn-outline-primary me-2" onclick="editReport(${report.id}, ${taskId})">
                                 <i class="fas fa-edit"></i>
-                                <span class="badge bg-primary ms-1">تعديل</span>
                             </button>
-                            <button class="btn btn-sm btn-outline-danger"
-                                    onclick="deleteReport(${report.id}, ${taskId})"
-                                    data-bs-toggle="tooltip"
-                                    title="حذف التقرير">
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteReport(${report.id}, ${taskId})">
                                 <i class="fas fa-trash"></i>
-                                <span class="badge bg-danger ms-1">حذف</span>
                             </button>
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="report-content">
-                            ${report.html_content}
-                        </div>
-                        <div class="report-footer mt-3 pt-2 border-top">
-                            <span class="badge bg-light text-dark">
-                                <i class="fas fa-file-alt"></i>
-                                تقرير #${report.id}
-                            </span>
-                        </div>
+                        ${report.html_content}
                     </div>
                 </div>
             `);
             reportsList.append(reportElement);
         });
 
-        // تفعيل tooltips
-        $('[data-bs-toggle="tooltip"]').tooltip();
+        // تحديث الوقت كل دقيقة
+        setInterval(() => {
+            reports.forEach(report => {
+                const timeAgoText = timeAgo(report.created_at);
+                $(`.report-card[data-report-id="${report.id}"] .time-ago`).text(timeAgoText);
+            });
+        }, 60000);
     };
-
-    // إضافة CSS للتقارير
-    $('<style>')
-        .text(`
-            .report-card {
-                transition: transform 0.3s ease, box-shadow 0.3s ease;
-            }
-            .report-card:hover {
-                transform: translateY(-2px);
-                box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            }
-            .report-card .badge {
-                transition: all 0.3s ease;
-            }
-            .report-card .badge:hover {
-                transform: scale(1.1);
-            }
-            .reports-header .badge {
-                font-size: 0.9rem;
-                padding: 0.4em 0.8em;
-            }
-            .report-footer .badge {
-                font-size: 0.85rem;
-                padding: 0.5em 1em;
-            }
-        `)
-        .appendTo('head');
 
     // إضافة دالة تعديل التقرير
     window.editReport = function(reportId, taskId) {

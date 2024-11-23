@@ -223,7 +223,7 @@ function saveTask() {
 }
 
 /**
- * دالة للحصول على النص ��لعربي للحالة
+ * دالة للحصول على النص لعربي للحالة
  * @param {string} status - حالة المهمة
  * @returns {string} - النص العربي للحالة
  */
@@ -249,7 +249,7 @@ function getStatusIcon(status) {
     return taskStatuses[status] && taskStatuses[status].icon ? taskStatuses[status].icon : 'question-circle';
 }
 
-// تحديث دالة renderTasks لتحسين تنسيق الأزرار في الهيدر
+// تحديث دالة renderTasks لتحسين تنسيق عنوان المهمة
 function renderTasks() {
     const tasksList = $('#tasks-list');
     tasksList.empty();
@@ -273,13 +273,16 @@ function renderTasks() {
             </span>
         `;
 
-        // تحديث تنسيق أزرار الهيدر
+        // تحديث تنسيق أنوان المهمة باستخدام Badge
         const taskElement = $(`
             <div class="card mb-4 task-card" data-task-id="${task.id}">
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="mb-0 task-title">
-                            ${escapeHtml(task.title)}
+                        <h5 class="mb-0">
+                            <span class="badge bg-primary task-title-badge">
+                                <i class="fas fa-tasks me-1"></i>
+                                ${escapeHtml(task.title)}
+                            </span>
                         </h5>
                         <div class="task-header-actions">
                             <div class="btn-group">
@@ -513,3 +516,28 @@ function updateTaskProgress(taskId, subtasks) {
     // تحديث لون شريط التقدم
     updateProgressBarColor(progressBar, progress);
 }
+
+// إضافة تنسيقات CSS جديدة للـ Badge
+$('<style>')
+    .text(`
+        .task-title-badge {
+            font-size: 1.1rem;
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .task-title-badge:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #000DFF 0%, #6B73FF 100%);
+        }
+
+        .task-title-badge i {
+            margin-right: 8px;
+            font-size: 0.9em;
+        }
+    `)
+    .appendTo('head');

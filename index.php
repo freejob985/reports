@@ -36,27 +36,99 @@
 
         /* تصميم الهيدر */
         .app-header {
-            background: var(--primary-gradient);
-            color: white;
+            background: linear-gradient(135deg, #1976d2 0%, #2196F3 100%);
             padding: 2rem 0;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
         }
 
-        .app-header h1 {
-            font-family: 'Cairo', sans-serif;
-            font-weight: 700;
-            margin: 0;
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        .header-content {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .app-icon {
+            font-size: 3rem;
+            color: white;
+            margin-bottom: 1rem;
+            animation: float 3s ease-in-out infinite;
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 2rem;
+            margin-top: 1.5rem;
+        }
+
+        .stat-item {
+            text-align: center;
+            color: white;
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+            transition: transform 0.3s ease;
+        }
+
+        .stat-item:hover {
+            transform: translateY(-5px);
+        }
+
+        .stat-item i {
+            font-size: 1.5rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .stat-item span {
+            display: block;
+            font-size: 1.5rem;
+            font-weight: bold;
         }
 
         /* تصميم الفوتر */
         .app-footer {
-            background: var(--secondary-gradient);
+            background: linear-gradient(135deg, #2196F3 0%, #1976d2 100%);
             color: white;
-            padding: 1.5rem 0;
+            padding: 2rem 0;
             margin-top: 3rem;
-            box-shadow: 0 -4px 6px rgba(0,0,0,0.1);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.1);
+        }
+
+        .footer-stats {
+            list-style: none;
+            padding: 0;
+        }
+
+        .footer-stats li {
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .footer-brand {
+            padding: 1rem;
+            background: rgba(255,255,255,0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(5px);
+        }
+
+        .footer-brand i {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .footer-actions {
+            display: flex;
+            gap: 1rem;
+            justify-content: flex-end;
+        }
+
+        @keyframes float {
+            0% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+            100% { transform: translateY(0px); }
         }
 
         /* تصميم البطاقات */
@@ -346,7 +418,29 @@
         <div class="container">
             <div class="row align-items-center">
                 <div class="col-12 text-center">
-                    <h1>نظام إدارة المهام</h1>
+                    <div class="header-content">
+                        <div class="app-icon">
+                            <i class="fas fa-tasks"></i>
+                        </div>
+                        <h1>نظام إدارة المهام</h1>
+                        <div class="header-stats">
+                            <div class="stat-item">
+                                <i class="fas fa-list"></i>
+                                <span id="total-tasks">0</span>
+                                <small>المهام الكلية</small>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-check-circle"></i>
+                                <span id="completed-tasks">0</span>
+                                <small>المهام المكتملة</small>
+                            </div>
+                            <div class="stat-item">
+                                <i class="fas fa-clock"></i>
+                                <span id="pending-tasks">0</span>
+                                <small>قيد الانتظار</small>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -381,8 +475,30 @@
     <footer class="app-footer">
         <div class="container">
             <div class="row">
-                <div class="col-12 text-center">
-                    <p class="mb-0">جميع الحقوق محفوظة &copy; 2024</p>
+                <div class="col-md-4">
+                    <h5><i class="fas fa-chart-line"></i> إحصائيات سريعة</h5>
+                    <ul class="footer-stats">
+                        <li><i class="fas fa-tasks"></i> إجمالي المهام: <span id="footer-total">0</span></li>
+                        <li><i class="fas fa-check"></i> المكتملة: <span id="footer-completed">0</span></li>
+                        <li><i class="fas fa-spinner"></i> قيد التنفيذ: <span id="footer-progress">0</span></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 text-center">
+                    <div class="footer-brand">
+                        <i class="fas fa-tasks"></i>
+                        <h5>نظام إدارة المهام</h5>
+                        <p>جميع الحقوق محفوظة &copy; 2024</p>
+                    </div>
+                </div>
+                <div class="col-md-4">
+                    <div class="footer-actions">
+                        <button class="btn btn-light" onclick="showAddTaskModal()">
+                            <i class="fas fa-plus"></i> مهمة جديدة
+                        </button>
+                        <button class="btn btn-light" onclick="showStats()">
+                            <i class="fas fa-chart-bar"></i> الإحصائيات
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>

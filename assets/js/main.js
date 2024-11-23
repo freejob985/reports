@@ -11,6 +11,18 @@ toastr.options = {
     "timeOut": "3000"
 };
 
+// تحديث تعريف الحالات
+const taskStatuses = {
+    'pending': { text: 'قيد الانتظار', icon: 'clock', class: 'bg-warning' },
+    'in-progress': { text: 'قيد التنفيذ', icon: 'spinner fa-spin', class: 'bg-info' },
+    'completed': { text: 'مكتملة', icon: 'check-circle', class: 'bg-success' },
+    'development': { text: 'تطوير', icon: 'code', class: 'bg-primary' },
+    'paused': { text: 'إيقاف', icon: 'pause-circle', class: 'bg-secondary' },
+    'postponed': { text: 'تأجيل', icon: 'clock', class: 'bg-warning' },
+    'searching': { text: 'بحث', icon: 'search', class: 'bg-info' },
+    'cancelled': { text: 'إلغاء', icon: 'times-circle', class: 'bg-danger' }
+};
+
 // دالة تحميل المهام عند بدء التطبيق
 $(document).ready(function() {
     loadTasks();
@@ -25,6 +37,7 @@ function loadTasks() {
             tasks = response.tasks || [];
             renderTasks();
             updateOverallProgress();
+            updateStats();
         },
         error: function(xhr, status, error) {
             toastr.error('حدث خطأ أثناء تحميل المهام');
@@ -207,7 +220,34 @@ function saveTask() {
     });
 }
 
-// دالة عرض المهام في الصفحة
+/**
+ * دالة للحصول على النص العربي للحالة
+ * @param {string} status - حالة المهمة
+ * @returns {string} - النص العربي للحالة
+ */
+function getStatusText(status) {
+    return taskStatuses[status] && taskStatuses[status].text ? taskStatuses[status].text : status;
+}
+
+/**
+ * دالة للحصول على لون الحالة
+ * @param {string} status - حالة المهمة
+ * @returns {string} - صنف لون الحالة
+ */
+function getStatusBadgeClass(status) {
+    return taskStatuses[status] && taskStatuses[status].class ? taskStatuses[status].class : 'bg-secondary';
+}
+
+/**
+ * دالة للحصول على أيقونة الحالة
+ * @param {string} status - حالة المهمة
+ * @returns {string} - اسم الأيقونة
+ */
+function getStatusIcon(status) {
+    return taskStatuses[status] && taskStatuses[status].icon ? taskStatuses[status].icon : 'question-circle';
+}
+
+// تحديث دالة renderTasks لاستخدام الدوال الجديدة
 function renderTasks() {
     const tasksList = $('#tasks-list');
     tasksList.empty();
@@ -219,6 +259,17 @@ function renderTasks() {
 
     tasks.forEach(task => {
         const statusBadgeClass = getStatusBadgeClass(task.status);
+        const statusIcon = getStatusIcon(task.status);
+        const statusText = getStatusText(task.status);
+
+        const statusBadge = `
+            <span class="badge ${statusBadgeClass} status-badge" 
+                  style="cursor: pointer;"
+                  onclick="showStatusModal(${task.id})"
+                  title="تغيير الحالة">
+                <i class="fas fa-${statusIcon}"></i> ${statusText}
+            </span>
+        `;
         const taskElement = $(`
             <div class="card mb-4 task-card" data-task-id="${task.id}">
                 <div class="card-header">
@@ -239,13 +290,7 @@ function renderTasks() {
                         </div>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
-                        <span class="badge ${statusBadgeClass} status-badge" 
-                              style="cursor: pointer;"
-                              onclick="showStatusModal(${task.id})"
-                              title="تغيير الحالة">
-                            ${getStatusText(task.status)}
-                            <i class="fas fa-edit ms-1"></i>
-                        </span>
+                        ${statusBadge}
                     </div>
                 </div>
                 <div class="card-body">
@@ -310,21 +355,6 @@ function escapeHtml(text) {
     const div = document.createElement('div');
     div.textContent = text;
     return div.innerHTML;
-}
-
-/**
- * دالة للحصول على النص العربي للحالة
- * @param {string} status - حالة المهمة
- * @returns {string} - النص العربي للحالة
- */
-function getStatusText(status) {
-    const statusMap = {
-        'pending': 'قيد الانتظار',
-        'in-progress': 'قيد التنفيذ',
-        'completed': 'مكتملة',
-        'cancelled': 'ملغاة'
-    };
-    return statusMap[status] || status;
 }
 
 // دالة تحديث التقدم الإجمالي
@@ -695,41 +725,30 @@ function reorderSubtasks(draggedId, droppedId) {
     });
 }
 
-// إضافة دالة للحصول على لون الحالة
-function getStatusBadgeClass(status) {
-    return {
-        'pending': 'bg-warning',
-        'in-progress': 'bg-info',
-        'completed': 'bg-success',
-        'cancelled': 'bg-danger'
-    }[status] || 'bg-secondary';
-}
-
-// إضافة دالة لعرض نافذة تغيير الحالة
+// تحديث دالة showStatusModal لاستخدام الدوال الجديدة
 function showStatusModal(taskId) {
     const task = tasks.find(t => t.id === taskId);
     if (!task) return;
 
+    let buttonsHtml = '';
+    Object.entries(taskStatuses).forEach(([status, info]) => {
+        const badgeClass = info.class.replace('bg-', '');
+        buttonsHtml += `
+            <button type="button" class="btn btn-lg btn-outline-${badgeClass} mb-2 w-100" 
+                    onclick="updateTaskStatus(${taskId}, '${status}')">
+                <i class="fas fa-${info.icon}"></i> ${info.text}
+            </button>
+        `;
+    });
+
     Swal.fire({
         title: 'تغيير حالة المهمة',
-        html: `
-            <div class="btn-group-vertical w-100">
-                <button type="button" class="btn btn-outline-warning mb-2" onclick="updateTaskStatus(${taskId}, 'pending')">
-                    قيد الانتظار
-                </button>
-                <button type="button" class="btn btn-outline-info mb-2" onclick="updateTaskStatus(${taskId}, 'in-progress')">
-                    قيد التنفيذ
-                </button>
-                <button type="button" class="btn btn-outline-success mb-2" onclick="updateTaskStatus(${taskId}, 'completed')">
-                    مكتملة
-                </button>
-                <button type="button" class="btn btn-outline-danger" onclick="updateTaskStatus(${taskId}, 'cancelled')">
-                    ملغاة
-                </button>
-            </div>
-        `,
+        html: `<div class="status-buttons">${buttonsHtml}</div>`,
         showConfirmButton: false,
-        showCloseButton: true
+        showCloseButton: true,
+        customClass: {
+            popup: 'status-modal'
+        }
     });
 }
 
@@ -768,4 +787,22 @@ function updateTaskStatus(taskId, status) {
 function toggleSubtaskSelection(subtaskId) {
     const label = $(`.subtask-title[onclick*="${subtaskId}"]`);
     label.toggleClass('selected-subtask');
+}
+
+// إضافة دالة تحديث الإحصائيات
+function updateStats() {
+    const totalTasks = tasks.length;
+    const completedTasks = tasks.filter(t => t.status === 'completed').length;
+    const pendingTasks = tasks.filter(t => t.status === 'pending').length;
+    const inProgressTasks = tasks.filter(t => t.status === 'in-progress').length;
+
+    // تحديث إحصائيات الهيدر
+    $('#total-tasks').text(totalTasks);
+    $('#completed-tasks').text(completedTasks);
+    $('#pending-tasks').text(pendingTasks);
+
+    // تحديث إحصائيات الفوتر
+    $('#footer-total').text(totalTasks);
+    $('#footer-completed').text(completedTasks);
+    $('#footer-progress').text(inProgressTasks);
 }

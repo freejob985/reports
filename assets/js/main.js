@@ -99,26 +99,44 @@ const createTaskCard = (task) => {
                             <i class="fas fa-plus ml-1"></i>إضافة
                         </button>
                     </div>
-                    <ul class="subtasks-list space-y-2" data-parent-id="${task.id}">
-                        ${task.subtasks ? task.subtasks.map(subtask => `
-                            <li class="subtask-item bg-white p-3 rounded-lg flex items-center justify-between shadow-sm" 
-                                data-subtask-id="${subtask.id}">
-                                <div class="flex items-center space-x-3">
-                                    <div class="handle cursor-move">
-                                        <i class="fas fa-grip-vertical text-gray-400"></i>
+                    <div class="subtasks-container">
+                        <ul class="subtasks-list" data-parent-id="${task.id}">
+                            ${task.subtasks ? task.subtasks.map(subtask => `
+                                <li class="subtask-item bg-white p-3 rounded-lg flex items-center justify-between shadow-sm mb-2" 
+                                    data-subtask-id="${subtask.id}">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="handle cursor-move">
+                                            <i class="fas fa-grip-vertical text-gray-400"></i>
+                                        </div>
+                                        <div class="flex items-center">
+                                            <input type="checkbox" class="subtask-checkbox form-checkbox h-4 w-4 text-blue-600 mr-2" 
+                                                   ${subtask.status ? 'checked' : ''}>
+                                            <span class="subtask-title ${subtask.status ? 'line-through text-gray-500' : ''}">${subtask.title}</span>
+                                        </div>
                                     </div>
-                                    <input type="checkbox" class="subtask-checkbox" 
-                                           ${subtask.status ? 'checked' : ''}>
-                                    <span class="${subtask.status ? 'line-through' : ''}">${subtask.title}</span>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <button onclick="deleteSubtask(${subtask.id})" class="text-red-500">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </li>
-                        `).join('') : ''}
-                    </ul>
+                                    <div class="flex items-center space-x-2">
+                                        <span class="priority-badge priority-${subtask.priority}">
+                                            ${getPriorityLabel(subtask.priority)}
+                                        </span>
+                                        <button onclick="deleteSubtask(${subtask.id})" class="text-red-500 hover:text-red-700">
+                                            <i class="fas fa-trash"></i>
+                                        </button>
+                                    </div>
+                                </li>
+                            `).join('') : ''}
+                        </ul>
+                        <!-- نموذج إضافة مهمة فرعية سريع -->
+                        <div class="mt-4">
+                            <div class="flex items-center space-x-2">
+                                <input type="text" class="form-control flex-grow" 
+                                       placeholder="أدخل عنوان المهمة الفرعية..."
+                                       id="newSubtask_${task.id}">
+                                <button onclick="addSubtask(${task.id})" class="btn btn-primary">
+                                    إضافة
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- التقارير -->
@@ -158,19 +176,31 @@ const createTaskCard = (task) => {
 // دالة إضافة مهمة فرعية
 const showSubtaskForm = (taskId) => {
     Swal.fire({
-        title: 'إضافة مهمة فرعية',
+        title: '',
         html: `
-            <input id="subtaskTitle" class="swal2-input" placeholder="عنوان المهمة الفرعية">
-            <select id="subtaskPriority" class="swal2-select">
-                <option value="0">أولوية عادية</option>
-                <option value="1">أولوية منخفضة</option>
-                <option value="2">أولوية متوسطة</option>
-                <option value="3">أولوية عالية</option>
-            </select>
+            <div class="bg-gradient-to-r from-indigo-500 to-purple-500 text-white p-4 rounded-t-lg mb-4">
+                <h3 class="text-xl font-bold">إضافة مهمة فرعية</h3>
+                <p class="text-sm mt-2">أدخل تفاصيل المهمة الفرعية</p>
+            </div>
+            <div class="p-4">
+                <input id="subtaskTitle" class="swal2-input" placeholder="عنوان المهمة الفرعية">
+                <select id="subtaskPriority" class="swal2-select">
+                    <option value="0">أولوية عادية</option>
+                    <option value="1">أولوية منخفضة</option>
+                    <option value="2">أولوية متوسطة</option>
+                    <option value="3">أولوية عالية</option>
+                </select>
+            </div>
+            <div class="bg-gradient-to-r from-purple-500 to-indigo-500 text-white p-3 rounded-b-lg">
+                <p class="text-sm">سيتم إضافة المهمة الفرعية فور الضغط على إضافة</p>
+            </div>
         `,
         showCancelButton: true,
         confirmButtonText: 'إضافة',
         cancelButtonText: 'إلغاء',
+        customClass: {
+            container: 'subtask-modal-container'
+        },
         preConfirm: () => {
             return {
                 title: document.getElementById('subtaskTitle').value,
@@ -238,40 +268,45 @@ const initSortable = () => {
         new Sortable(list, {
             handle: '.handle',
             animation: 150,
+            ghostClass: 'bg-blue-100',
+            chosenClass: 'bg-blue-200',
+            dragClass: 'shadow-lg',
             onEnd: function(evt) {
                 const subtaskId = evt.item.dataset.subtaskId;
                 const newIndex = Array.from(evt.item.parentNode.children).indexOf(evt.item);
-                updateSubtaskOrder(subtaskId, newIndex + 1); // +1 لأن الترتيب يبدأ من 1
+                const taskId = evt.item.closest('.task-list-item').dataset.taskId;
+                
+                updateSubtaskOrder(subtaskId, newIndex + 1, taskId);
             }
         });
     });
 };
 
 // تحديث ترتيب المهام الفرعية
-const updateSubtaskOrder = (subtaskId, newIndex) => {
+const updateSubtaskOrder = (subtaskId, newIndex, taskId) => {
     $.ajax({
         url: 'api/subtasks.php',
         method: 'PATCH',
+        contentType: 'application/json',
         data: JSON.stringify({
             id: subtaskId,
-            order: newIndex
+            order: newIndex,
+            task_id: taskId
         }),
-        contentType: 'application/json',
         success: function(response) {
             if (response.success) {
-                toastr.success('تم تحديث الترتيب بنجاح');
+                toastr.success('تم تحديث ترتيب المهام الفرعية');
             } else {
                 toastr.error(response.message);
+                loadTasks(); // إعادة تحميل المهام في حالة الفشل
             }
         },
         error: function() {
             toastr.error('حدث خطأ أثناء تحديث الترتيب');
+            loadTasks();
         }
     });
 };
-
-// دالة إنشاء بطاقة المهمة
-
 
 // دالة إضافة مهمة جديدة
 const addTask = () => {
@@ -771,7 +806,7 @@ const editReport = (reportId) => {
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    toastr.success('تم تحديث التقرير بنجاح');
+                    toastr.success('تم تحديث اتقرير بنجاح');
                     loadTasks();
                 }
             });
@@ -901,3 +936,31 @@ const changeTaskStatus = (taskId) => {
         }
     });
 };
+
+// إضافة مستمع لتحديث حالة المهام الفرعية
+$(document).on('change', '.subtask-checkbox', function() {
+    const subtaskId = $(this).closest('.subtask-item').data('subtask-id');
+    const status = $(this).prop('checked');
+    
+    $.ajax({
+        url: 'api/subtasks.php',
+        method: 'PATCH',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            id: subtaskId,
+            status: status
+        }),
+        success: function(response) {
+            if (response.success) {
+                toastr.success('تم تحديث حالة المهمة الفرعية');
+            } else {
+                toastr.error(response.message);
+                loadTasks();
+            }
+        },
+        error: function() {
+            toastr.error('حدث خطأ أثناء تحديث الحالة');
+            loadTasks();
+        }
+    });
+});

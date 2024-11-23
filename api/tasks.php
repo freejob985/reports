@@ -139,10 +139,18 @@ switch ($_SERVER['REQUEST_METHOD']) {
         try {
             $data = json_decode(file_get_contents('php://input'), true);
             $id = (int)$data['id'];
-            $status = (bool)$data['status'];
             
-            $stmt = $pdo->prepare("UPDATE tasks SET status = ? WHERE id = ?");
-            $stmt->execute([$status, $id]);
+            // التحقق من نوع التحديث
+            if (isset($data['status_type'])) {
+                // تحديث نوع الحالة
+                $stmt = $pdo->prepare("UPDATE tasks SET status_type = ? WHERE id = ?");
+                $stmt->execute([$data['status_type'], $id]);
+            } else if (isset($data['status'])) {
+                // تحديث حالة الإكمال
+                $status = (bool)$data['status'];
+                $stmt = $pdo->prepare("UPDATE tasks SET status = ? WHERE id = ?");
+                $stmt->execute([$status, $id]);
+            }
             
             echo json_encode(['success' => true, 'message' => 'تم تحديث حالة المهمة بنجاح']);
         } catch (PDOException $e) {

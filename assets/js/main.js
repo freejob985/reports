@@ -49,7 +49,7 @@ const getPriorityLabel = (priority) => {
 // دالة إنشاء بطاقة المهمة
 const createTaskCard = (task) => {
         return `
-        <div class="task-list-item bg-white rounded-lg shadow-sm p-4" data-task-id="${task.id}">
+        <div class="task-list-item bg-white rounded-lg shadow-sm p-4 mb-4" data-task-id="${task.id}">
             <div class="flex flex-col">
                 <!-- رأس المهمة -->
                 <div class="flex items-center justify-between mb-4">
@@ -77,7 +77,7 @@ const createTaskCard = (task) => {
                                 <li><a class="dropdown-item" onclick="editTask(${task.id})">
                                     <i class="fas fa-edit ml-2"></i>تعديل
                                 </a></li>
-                                <li><a class="dropdown-item" onclick="showStatusModal(${task.id})">
+                                <li><a class="dropdown-item" onclick="changeTaskStatus(${task.id})">
                                     <i class="fas fa-exchange-alt ml-2"></i>تغيير الحالة
                                 </a></li>
                                 <li><a class="dropdown-item" onclick="deleteTask(${task.id})">
@@ -92,7 +92,7 @@ const createTaskCard = (task) => {
                 <p class="text-gray-600 mb-4">${task.description}</p>
 
                 <!-- المهام الفرعية -->
-                <div class="subtasks-container mb-4">
+                <div class="subtasks-section bg-gray-50 rounded-lg p-4 mb-4">
                     <div class="flex items-center justify-between mb-2">
                         <h4 class="text-sm font-semibold">المهام الفرعية</h4>
                         <button onclick="showSubtaskForm(${task.id})" class="text-sm text-blue-500">
@@ -100,8 +100,8 @@ const createTaskCard = (task) => {
                         </button>
                     </div>
                     <ul class="subtasks-list space-y-2" data-parent-id="${task.id}">
-                        ${task.subtasks ? task.subtasks.map((subtask, index) => `
-                            <li class="subtask-item bg-gray-50 p-3 rounded-lg flex items-center justify-between" 
+                        ${task.subtasks ? task.subtasks.map(subtask => `
+                            <li class="subtask-item bg-white p-3 rounded-lg flex items-center justify-between shadow-sm" 
                                 data-subtask-id="${subtask.id}">
                                 <div class="flex items-center space-x-3">
                                     <div class="handle cursor-move">
@@ -119,21 +119,10 @@ const createTaskCard = (task) => {
                             </li>
                         `).join('') : ''}
                     </ul>
-                    <!-- نموذج إضافة مهمة فرعية -->
-                    <form class="subtask-form mt-2" onsubmit="return false;">
-                        <div class="flex items-center space-x-2">
-                            <input type="text" class="form-control flex-grow" 
-                                   placeholder="أدخل المهمة الفرعية هنا..."
-                                   id="newSubtask_${task.id}">
-                            <button onclick="addSubtask(${task.id})" class="btn btn-primary">
-                                إضافة
-                            </button>
-                        </div>
-                    </form>
                 </div>
 
                 <!-- التقارير -->
-                <div class="reports-container">
+                <div class="reports-section bg-gray-50 rounded-lg p-4">
                     <div class="flex items-center justify-between mb-2">
                         <h4 class="text-sm font-semibold">التقارير والملاحظات</h4>
                         <button onclick="showReportForm(${task.id})" class="text-sm text-blue-500">
@@ -142,7 +131,7 @@ const createTaskCard = (task) => {
                     </div>
                     <div class="reports-list space-y-3">
                         ${task.reports ? task.reports.map(report => `
-                            <div class="report-item bg-gray-50 p-4 rounded-lg">
+                            <div class="report-item bg-white p-4 rounded-lg shadow-sm">
                                 <div class="report-content prose max-w-none">
                                     ${report.content}
                                 </div>
@@ -381,14 +370,26 @@ const editTask = (taskId) => {
         success: function(response) {
             const task = response.task;
             Swal.fire({
-                title: 'تعديل المهمة',
+                title: '',
                 html: `
-                    <input id="editTaskTitle" class="swal2-input" value="${task.title}" placeholder="عنوان المهمة">
-                    <textarea id="editTaskDescription" class="swal2-textarea" placeholder="وصف المهمة">${task.description}</textarea>
+                    <div class="bg-gradient-to-r from-yellow-500 to-red-500 text-white p-4 rounded-t-lg mb-4">
+                        <h3 class="text-xl font-bold">تعديل المهمة</h3>
+                        <p class="text-sm mt-2">قم بتحديث بيانات المهمة</p>
+                    </div>
+                    <div class="p-4">
+                        <input id="editTaskTitle" class="swal2-input" value="${task.title}" placeholder="عنوان المهمة">
+                        <textarea id="editTaskDescription" class="swal2-textarea" placeholder="وصف المهمة">${task.description}</textarea>
+                    </div>
+                    <div class="bg-gradient-to-r from-red-500 to-yellow-500 text-white p-3 rounded-b-lg">
+                        <p class="text-sm">سيتم تحديث بيانات المهمة فور الضغط على حفظ</p>
+                    </div>
                 `,
                 showCancelButton: true,
                 confirmButtonText: 'حفظ',
                 cancelButtonText: 'إلغاء',
+                customClass: {
+                    container: 'edit-task-modal-container'
+                },
                 preConfirm: () => {
                     const data = {
                         id: taskId,
@@ -640,18 +641,27 @@ const exportAllTasks = () => {
 // دالة عرض نموذج إضافة تقرير جديد
 const showReportForm = (taskId) => {
     Swal.fire({
-        title: 'إضافة تقرير جديد',
+        title: '',
         html: `
-            <div id="reportEditorWrapper">
+            <div class="bg-gradient-to-r from-green-500 to-blue-500 text-white p-4 rounded-t-lg mb-4">
+                <h3 class="text-xl font-bold">إضافة تقرير جديد</h3>
+                <p class="text-sm mt-2">أدخل محتوى التقرير باستخدام محرر النصوص أدناه</p>
+            </div>
+            <div id="reportEditorWrapper" class="mb-4">
                 <textarea id="reportEditor"></textarea>
+            </div>
+            <div class="bg-gradient-to-r from-blue-500 to-green-500 text-white p-3 rounded-b-lg">
+                <p class="text-sm">سيتم حفظ التقرير وربطه بالمهمة المحددة</p>
             </div>
         `,
         showCancelButton: true,
         confirmButtonText: 'إضافة',
         cancelButtonText: 'إلغاء',
         width: '800px',
+        customClass: {
+            container: 'report-modal-container'
+        },
         didOpen: () => {
-            // تهيئة محرر TinyMCE
             tinymce.init({
                 selector: '#reportEditor',
                 directionality: 'rtl',
@@ -672,7 +682,6 @@ const showReportForm = (taskId) => {
                 Swal.showValidationMessage('الرجاء كتابة محتوى التقرير');
                 return false;
             }
-            
             return $.ajax({
                 url: 'api/reports.php',
                 method: 'POST',
@@ -683,7 +692,6 @@ const showReportForm = (taskId) => {
             });
         },
         willClose: () => {
-            // إزالة المحرر عند إغلاق النافذة
             tinymce.remove('#reportEditor');
         }
     }).then((result) => {
@@ -846,3 +854,50 @@ $(document).ready(function() {
         exportAllTasks();
     });
 });
+
+// إضافة دالة تغيير حالة المهمة
+const changeTaskStatus = (taskId) => {
+    Swal.fire({
+        title: 'تغيير حالة المهمة',
+        html: `
+            <div class="bg-gradient-to-r from-blue-500 to-purple-500 text-white p-4 rounded-t-lg mb-4">
+                <h3 class="text-xl font-bold">اختر الحالة الجديدة</h3>
+            </div>
+            <select id="taskStatus" class="swal2-select w-full mb-4">
+                <option value="بحث">قيد البحث</option>
+                <option value="تطوير">قيد التطوير</option>
+                <option value="اجتماع">تحتاج اجتماع</option>
+                <option value="تأجيل">مؤجلة</option>
+                <option value="ايقاف">متوقفة</option>
+                <option value="الغاء">ملغية</option>
+                <option value="أولوية">ذات أولوية</option>
+            </select>
+            <div class="bg-gradient-to-r from-purple-500 to-blue-500 text-white p-3 rounded-b-lg">
+                <p class="text-sm">سيتم تحديث حالة المهمة فور اختيار الحالة الجديدة</p>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'تحديث',
+        cancelButtonText: 'إلغاء',
+        customClass: {
+            container: 'status-modal-container'
+        },
+        preConfirm: () => {
+            const status = document.getElementById('taskStatus').value;
+            return $.ajax({
+                url: 'api/tasks.php',
+                method: 'PATCH',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    id: taskId,
+                    status_type: status
+                })
+            });
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            toastr.success('تم تحديث حالة المهمة بنجاح');
+            loadTasks();
+        }
+    });
+};

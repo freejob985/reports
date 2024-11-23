@@ -107,18 +107,11 @@ const createTaskCard = (task) => {
                                     <div class="handle cursor-move">
                                         <i class="fas fa-grip-vertical text-gray-400"></i>
                                     </div>
-                                    <span class="subtask-number">${index + 1}.</span>
                                     <input type="checkbox" class="subtask-checkbox" 
                                            ${subtask.status ? 'checked' : ''}>
                                     <span class="${subtask.status ? 'line-through' : ''}">${subtask.title}</span>
                                 </div>
                                 <div class="flex items-center space-x-2">
-                                    <span class="priority-badge priority-${subtask.priority}">
-                                        ${getPriorityLabel(subtask.priority)}
-                                    </span>
-                                    <button onclick="editSubtask(${subtask.id})" class="text-blue-500">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
                                     <button onclick="deleteSubtask(${subtask.id})" class="text-red-500">
                                         <i class="fas fa-trash"></i>
                                     </button>
@@ -126,6 +119,17 @@ const createTaskCard = (task) => {
                             </li>
                         `).join('') : ''}
                     </ul>
+                    <!-- نموذج إضافة مهمة فرعية -->
+                    <form class="subtask-form mt-2" onsubmit="return false;">
+                        <div class="flex items-center space-x-2">
+                            <input type="text" class="form-control flex-grow" 
+                                   placeholder="أدخل المهمة الفرعية هنا..."
+                                   id="newSubtask_${task.id}">
+                            <button onclick="addSubtask(${task.id})" class="btn btn-primary">
+                                إضافة
+                            </button>
+                        </div>
+                    </form>
                 </div>
 
                 <!-- التقارير -->
@@ -193,17 +197,44 @@ const showSubtaskForm = (taskId) => {
 };
 
 // دالة إضافة مهمة فرعية للخادم
-const addSubtask = (subtaskData) => {
+const addSubtask = (data) => {
+    // التحقق من نوع البيانات المرسلة
+    let taskId, title, priority;
+    
+    if (typeof data === 'object') {
+        // إذا تم استدعاء الدالة من نموذج SweetAlert
+        taskId = data.task_id;
+        title = data.title;
+        priority = data.priority || 0;
+    } else {
+        // إذا تم استدعاء الدالة من نموذج الإضافة السريعة
+        taskId = data;
+        title = $(`#newSubtask_${taskId}`).val().trim();
+        priority = 0;
+    }
+    
+    if (!title) {
+        toastr.error('الرجاء إدخال عنوان المهمة الفرعية');
+        return;
+    }
+    
     $.ajax({
         url: 'api/subtasks.php',
         method: 'POST',
-        data: subtaskData,
+        data: {
+            task_id: taskId,
+            title: title,
+            priority: priority
+        },
         success: function(response) {
             if (response.success) {
+                if (typeof data !== 'object') {
+                    $(`#newSubtask_${taskId}`).val(''); // تفريغ حقل الإدخال
+                }
                 toastr.success('تم إضافة المهمة الفرعية بنجاح');
                 loadTasks();
             } else {
-                toastr.error(response.message);
+                toastr.error(response.message || 'حدث خطأ أثناء إضافة المهمة الفرعية');
             }
         },
         error: function() {
@@ -220,8 +251,8 @@ const initSortable = () => {
             animation: 150,
             onEnd: function(evt) {
                 const subtaskId = evt.item.dataset.subtaskId;
-                const newIndex = evt.newIndex;
-                updateSubtaskOrder(subtaskId, newIndex);
+                const newIndex = Array.from(evt.item.parentNode.children).indexOf(evt.item);
+                updateSubtaskOrder(subtaskId, newIndex + 1); // +1 لأن الترتيب يبدأ من 1
             }
         });
     });
@@ -251,120 +282,7 @@ const updateSubtaskOrder = (subtaskId, newIndex) => {
 };
 
 // دالة إنشاء بطاقة المهمة
-const createTaskCard = (task) => {
-    return `
-        <div class="task-list-item bg-white rounded-lg shadow-sm p-4" data-task-id="${task.id}">
-            <div class="flex flex-col">
-                <!-- رأس المهمة -->
-                <div class="flex items-center justify-between mb-4">
-                    <div class="flex items-center space-x-4">
-                        <div class="handle cursor-move">
-                            <i class="fas fa-grip-vertical text-gray-400"></i>
-                        </div>
-                        <input type="checkbox" class="task-checkbox" 
-                               data-task-id="${task.id}" 
-                               ${task.status ? 'checked' : ''}>
-                        <h3 class="text-lg font-semibold ${task.status ? 'line-through text-gray-500' : ''}">${task.title}</h3>
-                    </div>
-                    <div class="flex items-center space-x-2">
-                        <span class="status-badge status-${task.status_type}">
-                            ${task.status_type}
-                        </span>
-                        <span class="priority-badge priority-${task.priority}">
-                            ${getPriorityLabel(task.priority)}
-                        </span>
-                        <div class="dropdown">
-                            <button class="btn btn-link" data-bs-toggle="dropdown">
-                                <i class="fas fa-ellipsis-v"></i>
-                            </button>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" onclick="editTask(${task.id})">
-                                    <i class="fas fa-edit ml-2"></i>تعديل
-                                </a></li>
-                                <li><a class="dropdown-item" onclick="showStatusModal(${task.id})">
-                                    <i class="fas fa-exchange-alt ml-2"></i>تغيير الحالة
-                                </a></li>
-                                <li><a class="dropdown-item" onclick="deleteTask(${task.id})">
-                                    <i class="fas fa-trash ml-2"></i>حذف
-                                </a></li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
 
-                <!-- وصف المهمة -->
-                <p class="text-gray-600 mb-4">${task.description}</p>
-
-                <!-- المهام الفرعية -->
-                <div class="subtasks-container mb-4">
-                    <div class="flex items-center justify-between mb-2">
-                        <h4 class="text-sm font-semibold">المهام الفرعية</h4>
-                        <button onclick="showSubtaskForm(${task.id})" class="text-sm text-blue-500">
-                            <i class="fas fa-plus ml-1"></i>إضافة
-                        </button>
-                    </div>
-                    <ul class="subtasks-list space-y-2" data-parent-id="${task.id}">
-                        ${task.subtasks ? task.subtasks.map((subtask, index) => `
-                            <li class="subtask-item bg-gray-50 p-3 rounded-lg flex items-center justify-between" 
-                                data-subtask-id="${subtask.id}">
-                                <div class="flex items-center space-x-3">
-                                    <div class="handle cursor-move">
-                                        <i class="fas fa-grip-vertical text-gray-400"></i>
-                                    </div>
-                                    <span class="subtask-number">${index + 1}.</span>
-                                    <input type="checkbox" class="subtask-checkbox" 
-                                           ${subtask.status ? 'checked' : ''}>
-                                    <span class="${subtask.status ? 'line-through' : ''}">${subtask.title}</span>
-                                </div>
-                                <div class="flex items-center space-x-2">
-                                    <span class="priority-badge priority-${subtask.priority}">
-                                        ${getPriorityLabel(subtask.priority)}
-                                    </span>
-                                    <button onclick="editSubtask(${subtask.id})" class="text-blue-500">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button onclick="deleteSubtask(${subtask.id})" class="text-red-500">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
-                                </div>
-                            </li>
-                        `).join('') : ''}
-                    </ul>
-                </div>
-
-                <!-- التقارير -->
-                <div class="reports-container">
-                    <div class="flex items-center justify-between mb-2">
-                        <h4 class="text-sm font-semibold">التقارير والملاحظات</h4>
-                        <button onclick="showReportForm(${task.id})" class="text-sm text-blue-500">
-                            <i class="fas fa-plus ml-1"></i>إضافة
-                        </button>
-                    </div>
-                    <div class="reports-list space-y-3">
-                        ${task.reports ? task.reports.map(report => `
-                            <div class="report-item bg-gray-50 p-4 rounded-lg">
-                                <div class="report-content prose max-w-none">
-                                    ${report.content}
-                                </div>
-                                <div class="flex items-center justify-between mt-2 text-sm text-gray-500">
-                                    <span>${formatDate(report.created_at)}</span>
-                                    <div>
-                                        <button onclick="editReport(${report.id})" class="text-blue-500 mr-2">
-                                            <i class="fas fa-edit"></i>
-                                        </button>
-                                        <button onclick="deleteReport(${report.id})" class="text-red-500">
-                                            <i class="fas fa-trash"></i>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        `).join('') : ''}
-                    </div>
-                </div>
-            </div>
-        </div>
-    `;
-};
 
 // دالة إضافة مهمة جديدة
 const addTask = () => {
@@ -715,6 +633,173 @@ const exportAllTasks = () => {
         },
         error: function(xhr, status, error) {
             toastr.error('حدث خطأ أثناء تحميل المهام');
+        }
+    });
+};
+
+// دالة عرض نموذج إضافة تقرير جديد
+const showReportForm = (taskId) => {
+    Swal.fire({
+        title: 'إضافة تقرير جديد',
+        html: `
+            <div id="reportEditorWrapper">
+                <textarea id="reportEditor"></textarea>
+            </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'إضافة',
+        cancelButtonText: 'إلغاء',
+        width: '800px',
+        didOpen: () => {
+            // تهيئة محرر TinyMCE
+            tinymce.init({
+                selector: '#reportEditor',
+                directionality: 'rtl',
+                language: 'ar',
+                height: 300,
+                plugins: 'lists link image table code',
+                toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist | link image | table | code',
+                setup: function(editor) {
+                    editor.on('change', function() {
+                        editor.save();
+                    });
+                }
+            });
+        },
+        preConfirm: () => {
+            const content = tinymce.get('reportEditor').getContent();
+            if (!content) {
+                Swal.showValidationMessage('الرجاء كتابة محتوى التقرير');
+                return false;
+            }
+            
+            return $.ajax({
+                url: 'api/reports.php',
+                method: 'POST',
+                data: {
+                    task_id: taskId,
+                    content: content
+                }
+            });
+        },
+        willClose: () => {
+            // إزالة المحرر عند إغلاق النافذة
+            tinymce.remove('#reportEditor');
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            toastr.success('تم إضافة التقرير بنجاح');
+            loadTasks();
+        }
+    });
+};
+
+// دالة تحرير تقرير موجود
+const editReport = (reportId) => {
+    // جلب بيانات التقرير أولاً
+    $.ajax({
+        url: `api/reports.php?id=${reportId}`,
+        method: 'GET',
+        success: function(response) {
+            if (!response.success) {
+                toastr.error('لم يتم العثور على التقرير');
+                return;
+            }
+
+            const report = response.report;
+            
+            Swal.fire({
+                title: 'تعديل التقرير',
+                html: `
+                    <div id="editReportWrapper">
+                        <textarea id="editReportContent" class="swal2-textarea" style="display: none;">${report.content}</textarea>
+                    </div>
+                `,
+                showCancelButton: true,
+                confirmButtonText: 'حفظ التعديلات',
+                cancelButtonText: 'إلغاء',
+                width: '800px',
+                didOpen: () => {
+                    // تهيئة محرر النصوص للتعديل
+                    tinymce.init({
+                        selector: '#editReportContent',
+                        directionality: 'rtl',
+                        language: 'ar',
+                        plugins: 'lists link image table code',
+                        toolbar: 'undo redo | formatselect | bold italic | alignleft aligncenter alignright | bullist numlist | link image | table | code',
+                        height: 300,
+                        menubar: false,
+                        statusbar: false
+                    });
+                },
+                preConfirm: () => {
+                    const content = tinymce.get('editReportContent').getContent();
+                    if (!content) {
+                        Swal.showValidationMessage('الرجاء كتابة محتوى التقرير');
+                        return false;
+                    }
+
+                    // تحديث التقرير
+                    return $.ajax({
+                        url: 'api/reports.php',
+                        method: 'PUT',
+                        contentType: 'application/json',
+                        data: JSON.stringify({
+                            id: reportId,
+                            content: content
+                        })
+                    }).then(response => {
+                        if (response.success) {
+                            return response;
+                        }
+                        throw new Error(response.message || 'حدث خطأ أثناء تحديث التقرير');
+                    }).catch(error => {
+                        Swal.showValidationMessage(error.message);
+                        return false;
+                    });
+                },
+                willClose: () => {
+                    tinymce.remove('#editReportContent');
+                }
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    toastr.success('تم تحديث التقرير بنجاح');
+                    loadTasks();
+                }
+            });
+        },
+        error: function() {
+            toastr.error('حدث خطأ أثناء تحميل بيانات التقرير');
+        }
+    });
+};
+
+// دالة حذف تقرير
+const deleteReport = (reportId) => {
+    Swal.fire({
+        title: 'تأكيد الحذف',
+        text: 'هل أنت متأكد من حذف هذا التقرير؟',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonText: 'نعم، احذف',
+        cancelButtonText: 'إلغاء'
+    }).then((result) => {
+        if (result.isConfirmed) {
+            $.ajax({
+                url: `api/reports.php?id=${reportId}`,
+                method: 'DELETE',
+                success: function(response) {
+                    if (response.success) {
+                        toastr.success('تم حذف التقرير بنجاح');
+                        loadTasks();
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function() {
+                    toastr.error('حدث خطأ أثناء حذف التقرير');
+                }
+            });
         }
     });
 };

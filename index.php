@@ -31,6 +31,8 @@ require_once 'helpers/functions.php';
     <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
     <link rel="icon" type="image/png" href="assets/images/favicon.png">
     
+    <script src="https://cdn.tiny.cloud/1/7e1mldkbut3yp4tyeob9lt5s57pb8wrb5fqbh11d6n782gm7/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    
     <style>
         body {
             font-family: 'Tajawal', sans-serif;
@@ -66,6 +68,21 @@ require_once 'helpers/functions.php';
         .task-list-item:hover {
             background-color: #f8fafc;
         }
+        
+        * {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+        
+        /* السماح بالتحديد في محرر TinyMCE فقط */
+        .tox-edit-area {
+            -webkit-user-select: text;
+            -moz-user-select: text;
+            -ms-user-select: text;
+            user-select: text;
+        }
     </style>
 </head>
 <body class="bg-gray-100">
@@ -91,7 +108,7 @@ require_once 'helpers/functions.php';
     <!-- محتوى الصفحة الرئيسي -->
     <main class="container mx-auto px-4 py-8">
         <div id="tasksList" class="space-y-4">
-            <!-- سيتم إضافة المهام هنا ديناميكياً -->
+            <!-- سيتم إضافة ا��مهام هنا ديناميكياً -->
         </div>
     </main>
 

@@ -504,6 +504,9 @@ function updateCurrentProjectInfo(projects) {
                 <button class="btn btn-outline-danger btn-sm" onclick="deleteProject(${currentProject.id})">
                     <i class="fas fa-trash"></i> حذف
                 </button>
+                <button class="btn btn-outline-success btn-sm" onclick="exportProjectReport(${currentProject.id})">
+                    <i class="fas fa-file-pdf"></i> تصدير التقرير
+                </button>
             </div>
         </div>
         <div class="project-stats">
@@ -525,11 +528,50 @@ function updateCurrentProjectInfo(projects) {
                  role="progressbar" style="width: 0%" 
                  aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
         </div>
+        
+        <!-- أزرار إضافية -->
+        <div class="project-actions mt-3">
+            <button class="btn btn-primary" onclick="showAddTaskModal()">
+                <i class="fas fa-plus"></i> إضافة مهمة
+            </button>
+            <button class="btn btn-success" onclick="exportProjectReport(${currentProject.id})">
+                <i class="fas fa-file-pdf"></i> تصدير تقرير المشروع
+            </button>
+        </div>
     `);
 
     // تحديث إحصائيات المهام للمشروع الحالي
     updateProjectTasksStats(currentProject.id);
 }
+
+// إضافة CSS للأزرار
+$('<style>')
+    .text(`
+        .project-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .project-actions .btn {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            transition: all 0.3s ease;
+        }
+
+        .project-actions .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .project-actions .btn i {
+            font-size: 1.1em;
+        }
+    `)
+    .appendTo('head');
 
 /**
  * حذف مشروع

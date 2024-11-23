@@ -924,6 +924,9 @@
             <!-- المشروع الحالي -->
             <div class="current-project mt-3" id="current-project-info">
                 <!-- معلومات المشروع الحالي -->
+                <button class="btn btn-primary" onclick="exportProjectReport(currentProjectId)">
+                    <i class="fas fa-file-pdf"></i> تصدير التقرير
+                </button>
             </div>
         </div>
     </div>
@@ -1118,5 +1121,9 @@
     <script src="assets/js/subtasks.js"></script>
     <script src="assets/js/reports.js"></script>
     <script src="assets/js/projects.js"></script>
+    <!-- إضافة مكتبات PDF -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="assets/js/export.js"></script>
 </body>
 </html> 

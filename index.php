@@ -689,6 +689,83 @@
         .date-badge.updated {
             background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
         }
+
+        /* تنسيق أزرار المهام في الهيدر */
+        .task-header-actions {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .task-action-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 50px;
+            color: white;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .task-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        }
+
+        .task-action-btn i {
+            font-size: 1rem;
+        }
+
+        .task-action-btn.primary {
+            background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+        }
+
+        .task-action-btn.success {
+            background: linear-gradient(135deg, #28C76F 0%, #48DA89 100%);
+        }
+
+        .task-action-btn.info {
+            background: linear-gradient(135deg, #0396FF 0%, #ABDCFF 100%);
+        }
+
+        .task-action-btn.warning {
+            background: linear-gradient(135deg, #FFB75E 0%, #ED8F03 100%);
+        }
+
+        .task-action-btn.danger {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF0000 100%);
+        }
+
+        /* تحسين مظهر عنوان المهمة */
+        .task-title {
+            font-size: 1.25rem;
+            font-weight: 600;
+            color: #2c3e50;
+        }
+
+        /* تنسيق مجموعة الأزرار */
+        .btn-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+
+        /* تحسين مظهر النص في الأزرار على الشاشات الصغيرة */
+        @media (max-width: 768px) {
+            .action-text {
+                display: none;
+            }
+            
+            .task-action-btn {
+                padding: 0.5rem;
+            }
+            
+            .task-action-btn i {
+                margin: 0;
+            }
+        }
     </style>
 </head>
 <body>

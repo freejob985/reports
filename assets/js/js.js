@@ -223,7 +223,7 @@ function saveTask() {
 }
 
 /**
- * دالة للحصول على النص العربي للحالة
+ * دالة للحصول على النص ��لعربي للحالة
  * @param {string} status - حالة المهمة
  * @returns {string} - النص العربي للحالة
  */
@@ -249,7 +249,7 @@ function getStatusIcon(status) {
     return taskStatuses[status] && taskStatuses[status].icon ? taskStatuses[status].icon : 'question-circle';
 }
 
-// تحديث دالة renderTasks لاستخدام الدوال الجديدة
+// تحديث دالة renderTasks لتحسين تنسيق الأزرار في الهيدر
 function renderTasks() {
     const tasksList = $('#tasks-list');
     tasksList.empty();
@@ -272,23 +272,38 @@ function renderTasks() {
                 <i class="fas fa-${statusIcon}"></i> ${statusText}
             </span>
         `;
+
+        // تحديث تنسيق أزرار الهيدر
         const taskElement = $(`
             <div class="card mb-4 task-card" data-task-id="${task.id}">
                 <div class="card-header">
                     <div class="d-flex justify-content-between align-items-center mb-2">
-                        <h5 class="mb-0">
+                        <h5 class="mb-0 task-title">
                             ${escapeHtml(task.title)}
                         </h5>
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-outline-primary" onclick="editTask(${task.id})" title="تحرير المهمة">
-                                <i class="fas fa-edit"></i> تحرير
-                            </button>
-                            <button class="btn btn-sm btn-outline-success" onclick="quickUpdateStatus(${task.id}, 'completed')" title="إكمال المهمة">
-                                <i class="fas fa-check"></i>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteTask(${task.id})" title="حذف المهمة">
-                                <i class="fas fa-trash"></i>
-                            </button>
+                        <div class="task-header-actions">
+                            <div class="btn-group">
+                                <button class="task-action-btn primary" onclick="editTask(${task.id})" title="تحرير المهمة">
+                                    <i class="fas fa-edit"></i>
+                                    <span class="action-text">تحرير</span>
+                                </button>
+                                <button class="task-action-btn success" onclick="quickUpdateStatus(${task.id}, 'completed')" title="إكمال المهمة">
+                                    <i class="fas fa-check"></i>
+                                    <span class="action-text">إكمال</span>
+                                </button>
+                                <button class="task-action-btn info" onclick="showSubtasksModal(${task.id})" title="المهام الفرعية">
+                                    <i class="fas fa-tasks"></i>
+                                    <span class="action-text">المهام الفرعية</span>
+                                </button>
+                                <button class="task-action-btn warning" onclick="showReportsModal(${task.id})" title="التقارير">
+                                    <i class="fas fa-file-alt"></i>
+                                    <span class="action-text">التقارير</span>
+                                </button>
+                                <button class="task-action-btn danger" onclick="deleteTask(${task.id})" title="حذف المهمة">
+                                    <i class="fas fa-trash"></i>
+                                    <span class="action-text">حذف</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="d-flex justify-content-between align-items-center">
@@ -296,14 +311,12 @@ function renderTasks() {
                     </div>
                 </div>
                 <div class="card-body">
-                    <!-- وصف المهمة -->
+                    <!-- باقي محتوى الكارد بدون تغيير -->
                     <p class="card-text">${escapeHtml(task.description || '')}</p>
 
                     <!-- المهام الفرعية -->
                     <div class="subtasks-section mb-3">
                         <h6 class="mb-3">المهام الفرعية</h6>
-                        
-                        <!-- نموذج إضافة مهمة فرعية -->
                         <div class="input-group mb-3">
                             <input type="text" 
                                    class="form-control subtask-input" 
@@ -315,8 +328,6 @@ function renderTasks() {
                                 <i class="fas fa-plus"></i>
                             </button>
                         </div>
-
-                        <!-- قائمة المهام الفرعية -->
                         <div id="subtasks-list-${task.id}" class="list-group">
                             <!-- سيتم تحميل المهام الفرعية هنا -->
                         </div>
@@ -325,9 +336,6 @@ function renderTasks() {
                     <!-- قسم التقارير -->
                     <div class="reports-section mb-3">
                         <h6 class="mb-3">التقارير</h6>
-                        <button class="btn btn-outline-primary mb-3" onclick="showReportsModal(${task.id})">
-                            <i class="fas fa-file-alt"></i> إضافة تقرير
-                        </button>
                         <div id="reports-list-${task.id}">
                             <!-- سيتم تحميل التقارير هنا -->
                         </div>

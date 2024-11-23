@@ -183,13 +183,21 @@ function renderTasks() {
 
                     <!-- المهام الفرعية -->
                     <div class="subtasks-section mb-3">
-                        <h6 class="d-flex justify-content-between align-items-center">
-                            <span>المهام الفرعية</span>
-                            <button class="btn btn-sm btn-outline-info" onclick="showSubtasksModal(${task.id})">
-                                <i class="fas fa-plus"></i> إضافة مهمة فرعية
+                        <h6 class="mb-3">المهام الفرعية</h6>
+                        
+                        <!-- نموذج إضافة مهمة فرعية -->
+                        <div class="input-group mb-3">
+                            <input type="text" class="form-control subtask-input" 
+                                   data-task-id="${task.id}"
+                                   placeholder="أضف مهمة فرعية جديدة"
+                                   onkeypress="handleSubtaskKeyPress(event, ${task.id})">
+                            <button class="btn btn-outline-primary" onclick="addSubtask(${task.id})">
+                                <i class="fas fa-plus"></i>
                             </button>
-                        </h6>
-                        <div id="subtasks-list-${task.id}" class="list-group mt-2">
+                        </div>
+
+                        <!-- قائمة المهام الفرعية -->
+                        <div id="subtasks-list-${task.id}" class="list-group">
                             <!-- سيتم تحميل المهام الفرعية هنا -->
                         </div>
                     </div>
@@ -223,8 +231,6 @@ function renderTasks() {
         `);
 
         tasksList.append(taskElement);
-
-        // تحميل المهام الفرعية والتقارير لهذه المهمة
         loadTaskSubtasks(task.id);
         loadTaskReports(task.id);
     });
@@ -321,28 +327,22 @@ function renderTaskSubtasks(taskId, subtasks) {
         return;
     }
 
-    // عرض ملخص فقط
-    const completedCount = subtasks.filter(s => s.completed).length;
-    const totalCount = subtasks.length;
-    const progress = (completedCount / totalCount) * 100;
-
-    const summary = $(`
-        <div>
-            <div class="d-flex justify-content-between align-items-center mb-2">
-                <span class="text-muted">المهام المكتملة: ${completedCount}/${totalCount}</span>
-                <span class="badge bg-${progress === 100 ? 'success' : 'info'}">${Math.round(progress)}%</span>
-            </div>
-            <div class="progress" style="height: 10px;">
-                <div class="progress-bar" role="progressbar" 
-                     style="width: ${progress}%" 
-                     aria-valuenow="${progress}" 
-                     aria-valuemin="0" 
-                     aria-valuemax="100">
+    subtasks.forEach(subtask => {
+        const element = $(`
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" 
+                           ${subtask.completed ? 'checked' : ''}
+                           onchange="toggleSubtask(${subtask.id}, this.checked)">
+                    <label class="form-check-label">${escapeHtml(subtask.title)}</label>
                 </div>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteSubtask(${subtask.id})">
+                    <i class="fas fa-times"></i>
+                </button>
             </div>
-        </div>
-    `);
-    subtasksList.append(summary);
+        `);
+        subtasksList.append(element);
+    });
 }
 
 // دالة عرض التقارير
@@ -366,4 +366,47 @@ function renderTaskReports(taskId, reports) {
         </div>
     `);
     reportsList.append(summary);
+}
+
+// إضافة دالة معالجة ضغط Enter في حقل المهمة الفرعية
+function handleSubtaskKeyPress(event, taskId) {
+    if (event.key === 'Enter') {
+        event.preventDefault();
+        addSubtask(taskId);
+    }
+}
+
+// تحديث دالة إضافة مهمة فرعية
+function addSubtask(taskId) {
+    const input = $(`.subtask-input[data-task-id="${taskId}"]`);
+    const title = input.val().trim();
+
+    if (!title) {
+        toastr.error('يرجى إدخال عنوان المهمة الفرعية');
+        return;
+    }
+
+    $.ajax({
+        url: 'api/subtasks.php',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            task_id: taskId,
+            title: title
+        }),
+        success: function(response) {
+            if (response.success) {
+                input.val('').focus(); // مسح الحقل وإعادة التركيز إليه
+                loadTaskSubtasks(taskId);
+                loadTasks(); // تحديث التقدم في المهمة الرئيسية
+                toastr.success('تم إضافة المهمة الفرعية بنجاح');
+            } else {
+                toastr.error(response.message || 'حدث خطأ أثناء إضافة المهمة الفرعية');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error adding subtask:', error);
+            toastr.error('حدث خطأ أثناء إضافة المهمة الفرعية');
+        }
+    });
 }

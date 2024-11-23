@@ -11,6 +11,7 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css" rel="stylesheet">
+    <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
     
     <!-- خط Cairo و Tajawal -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -95,12 +96,13 @@
             border-radius: 6px;
             background-color: #e9ecef;
             overflow: hidden;
-            margin-top: 1rem;
+            margin: 1rem 0;
+            position: relative;
         }
 
         .progress-bar {
-            background: var(--primary-gradient);
-            transition: width 0.5s ease;
+            transition: width 0.4s ease-in-out;
+            position: relative;
         }
 
         /* تصميم الأزرار */
@@ -118,9 +120,14 @@
 
         /* تصميم البطاقات الفرعية */
         .list-group-item {
+            transition: all 0.3s ease;
             border-radius: 8px;
             margin-bottom: 0.5rem;
             border: 1px solid rgba(0,0,0,0.1);
+        }
+
+        .list-group-item:hover {
+            background-color: #f8f9fa;
         }
 
         /* تصميم الشارات */
@@ -146,6 +153,44 @@
 
         .modal-footer {
             border-top: 1px solid rgba(0,0,0,0.1);
+        }
+
+        /* تصميم المهام المكتملة */
+        .completed-subtask {
+            text-decoration: line-through;
+            opacity: 0.7;
+            transition: all 0.3s ease;
+            background-color: #f8f9fa;
+        }
+
+        /* تحسين حركة البروجرس بار */
+        .progress {
+            height: 12px;
+            border-radius: 6px;
+            background-color: #e9ecef;
+            overflow: hidden;
+            margin: 1rem 0;
+            position: relative;
+        }
+
+        .progress-bar {
+            transition: width 0.4s ease-in-out;
+            position: relative;
+        }
+
+        /* تصميم رسالة الخطأ */
+        .error-message {
+            color: #dc3545;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+            display: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .error-message.show {
+            display: block;
+            opacity: 1;
         }
     </style>
 </head>
@@ -283,6 +328,7 @@
 
     <!-- المكتبات JavaScript -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.js"></script>

@@ -349,7 +349,11 @@ function renderTaskSubtasks(taskId, subtasks) {
     updateTaskProgress(taskId, subtasks);
 }
 
-// إضافة دالة تحديث تقدم المهمة
+/**
+ * تحديث تقدم المهمة
+ * @param {number} taskId - معرف المهمة
+ * @param {Array} subtasks - قائمة المهام الفرعية
+ */
 function updateTaskProgress(taskId, subtasks) {
     const totalSubtasks = subtasks.length;
     const completedSubtasks = subtasks.filter(s => s.completed).length;
@@ -357,28 +361,29 @@ function updateTaskProgress(taskId, subtasks) {
 
     const progressBar = $(`.task-card[data-task-id="${taskId}"] .progress-bar`);
 
-    // تحديث تدريجي للنسبة
-    $({ percent: parseFloat(progressBar.css('width')) || 0 }).animate({ percent: progress }, {
-        duration: 600,
-        easing: 'easeOutQuart',
-        step: function(now) {
-            progressBar.css('width', now + '%');
-            progressBar.text(Math.round(now) + '%');
-        },
-        complete: function() {
-            // تحديث حالة المهمة المكتملة
-            const taskCard = $(`.task-card[data-task-id="${taskId}"]`);
-            if (progress === 100) {
-                taskCard.addClass('completed-task');
-            } else {
-                taskCard.removeClass('completed-task');
-            }
-        }
-    });
+    // استخدام CSS transition بدلاً من jQuery animate
+    progressBar.css({
+        'width': `${progress}%`,
+        'transition': 'width 0.4s ease-in-out'
+    }).text(Math.round(progress) + '%');
+
+    // تحديث اللون بناءً على التقدم
+    updateProgressBarColor(progressBar, progress);
 }
 
-// تحديث دالة toggleSubtask
+/**
+ * تحديث حالة المهمة الفرعية
+ * @param {number} subtaskId - معرف المهمة الفرعية
+ * @param {boolean} completed - حالة الإكمال
+ * @param {number} taskId - معرف المهمة الرئيسية
+ */
 function toggleSubtask(subtaskId, completed, taskId) {
+    // منع السلوك الافتراضي وتحريك الصفحة
+    event.preventDefault();
+    event.stopPropagation();
+
+    const subtaskElement = $(`.list-group-item[data-subtask-id="${subtaskId}"]`);
+
     $.ajax({
         url: 'api/subtasks.php',
         method: 'PUT',
@@ -389,15 +394,10 @@ function toggleSubtask(subtaskId, completed, taskId) {
         }),
         success: function(response) {
             if (response.success) {
-                // تحديث المظهر بدون إعادة تحميل
-                const subtaskElement = $(`.list-group-item[data-subtask-id="${subtaskId}"]`);
-                if (completed) {
-                    subtaskElement.addClass('completed-subtask');
-                } else {
-                    subtaskElement.removeClass('completed-subtask');
-                }
+                // تحديث المظهر بشكل متحرك
+                subtaskElement.toggleClass('completed-subtask', completed);
 
-                // تحديث التقدم
+                // تحديث التقدم بدون تحريك الصفحة
                 loadTaskSubtasks(taskId);
             } else {
                 toastr.error(response.message || 'حدث خطأ أثناء تحديث المهمة الفرعية');
@@ -441,13 +441,27 @@ function handleSubtaskKeyPress(event, taskId) {
     }
 }
 
-// تحديث دالة إضافة مهمة فرعية
+/**
+ * إضافة مهمة فرعية جديدة
+ * @param {number} taskId - معرف المهمة الرئيسية
+ */
 function addSubtask(taskId) {
     const input = $(`.subtask-input[data-task-id="${taskId}"]`);
     const title = input.val().trim();
+    const errorContainer = input.siblings('.error-message');
+
+    // إزالة رسالة الخطأ السابقة
+    errorContainer.removeClass('show');
 
     if (!title) {
-        toastr.error('يرجى إدخال عنوان المهمة الفرعية');
+        // إظهار رسالة الخطأ بشكل متحرك
+        if (!errorContainer.length) {
+            input.after('<div class="error-message">يرجى إدخال عنوان المهمة الفرعية</div>');
+        }
+        setTimeout(() => {
+            input.siblings('.error-message').addClass('show');
+        }, 10);
+        input.focus();
         return;
     }
 
@@ -461,9 +475,8 @@ function addSubtask(taskId) {
         }),
         success: function(response) {
             if (response.success) {
-                input.val('').focus(); // مسح الحقل وإعادة التركيز إليه
+                input.val('').focus();
                 loadTaskSubtasks(taskId);
-                loadTasks(); // تحديث التقدم في المهمة الرئيسية
                 toastr.success('تم إضافة المهمة الفرعية بنجاح');
             } else {
                 toastr.error(response.message || 'حدث خطأ أثناء إضافة المهمة الفرعية');

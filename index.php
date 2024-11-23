@@ -538,6 +538,97 @@
         .badge.with-icon i {
             font-size: 0.85em;
         }
+
+        /* تنسيق أزرار المهام الرئيسية */
+        .task-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .task-btn {
+            padding: 0.5rem 1rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .task-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .task-btn i {
+            font-size: 0.9em;
+        }
+
+        /* تنسيق أزرار التقارير */
+        .report-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+
+        .report-btn {
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .report-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        .report-btn i {
+            font-size: 1.1em;
+        }
+
+        /* تنسيق أزرار الحالة */
+        .status-btn {
+            padding: 0.4rem 1rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: linear-gradient(135deg, var(--bs-primary) 0%, var(--bs-info) 100%);
+            color: white;
+            border: none;
+        }
+
+        .status-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        /* تنسيق مجموعة الأزرار */
+        .btn-group {
+            border-radius: 50px;
+            overflow: hidden;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .btn-group .btn {
+            border: none;
+            padding: 0.5rem 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .btn-group .btn:hover {
+            transform: translateY(-2px);
+            z-index: 2;
+        }
     </style>
 </head>
 <body>
@@ -696,7 +787,7 @@
                         </div>
                     </div>
                     <div id="subtasksList" class="list-group">
-                        <!-- سيتم إضافة المهام الفرعية هن�� -->
+                        <!-- سيتم إضافة المهام الفرعية هن -->
                     </div>
                 </div>
             </div>

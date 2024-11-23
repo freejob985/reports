@@ -23,11 +23,17 @@ function validateTaskData($data) {
         return ['valid' => false, 'message' => 'عنوان المهمة مطلوب'];
     }
     
+    // تحديث قائمة الحالات المسموح بها
+    $allowedStatuses = [
+        'pending', 'in-progress', 'completed', 'cancelled',
+        'development', 'paused', 'postponed', 'searching'
+    ];
+    
     // التأكد من وجود القيم الأساسية وتعيين القيم الافتراضية
     $cleanData = [
         'title' => trim($data['title']),
         'description' => isset($data['description']) ? trim($data['description']) : '',
-        'status' => isset($data['status']) && in_array($data['status'], ['pending', 'in-progress', 'completed', 'cancelled']) 
+        'status' => isset($data['status']) && in_array($data['status'], $allowedStatuses) 
             ? $data['status'] 
             : 'pending'
     ];
@@ -196,7 +202,7 @@ try {
             break;
             
         default:
-            $logger->warning('طريقة طلب ��ير مدعومة', ['method' => $method]);
+            $logger->warning('طريقة طلب ير مدعومة', ['method' => $method]);
             http_response_code(405);
             echo json_encode(['success' => false, 'message' => 'طريقة الطلب غير مدعومة']);
             break;

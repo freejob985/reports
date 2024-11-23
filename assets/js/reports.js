@@ -202,12 +202,12 @@
                             <span class="time-ago">${timeAgoText}</span>
                             <small class="text-muted ms-2">${reportDate}</small>
                         </div>
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-outline-primary me-2" onclick="editReport(${report.id}, ${taskId})">
-                                <i class="fas fa-edit"></i>
+                        <div class="report-actions">
+                            <button class="report-btn btn-outline-primary" onclick="editReport(${report.id}, ${taskId})">
+                                <i class="fas fa-edit"></i> تعديل
                             </button>
-                            <button class="btn btn-sm btn-outline-danger" onclick="deleteReport(${report.id}, ${taskId})">
-                                <i class="fas fa-trash"></i>
+                            <button class="report-btn btn-outline-danger" onclick="deleteReport(${report.id}, ${taskId})">
+                                <i class="fas fa-trash"></i> حذف
                             </button>
                         </div>
                     </div>

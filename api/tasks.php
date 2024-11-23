@@ -1,161 +1,217 @@
 <?php
-require_once '../config/database.php';
-require_once '../helpers/functions.php';
-
 header('Content-Type: application/json');
+require_once 'database.php';
+require_once 'Logger.php';
 
-switch ($_SERVER['REQUEST_METHOD']) {
-    case 'GET':
-        try {
-            if (isset($_GET['id'])) {
-                // جلب مهمة واحدة مع مهامها الفرعية
-                $taskId = (int)$_GET['id'];
-                $stmt = $pdo->prepare("
-                    SELECT t.*, 
-                           GROUP_CONCAT(st.id) as subtask_ids,
-                           GROUP_CONCAT(st.title) as subtask_titles,
-                           GROUP_CONCAT(st.status) as subtask_statuses,
-                           GROUP_CONCAT(st.priority) as subtask_priorities
-                    FROM tasks t
-                    LEFT JOIN subtasks st ON t.id = st.task_id
-                    WHERE t.id = ?
-                    GROUP BY t.id
-                ");
-                $stmt->execute([$taskId]);
-                $task = $stmt->fetch();
+$db = new Database();
+$logger = new Logger();
+
+// تحديد طريقة الطلب
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+// دالة للتحقق من البيانات المطلوبة
+function validateTaskData($data) {
+    global $logger;
+    
+    if (!is_array($data)) {
+        $logger->error('البيانات المرسلة غير صحيحة', ['data' => $data]);
+        return ['valid' => false, 'message' => 'البيانات المرسلة غير صحيحة'];
+    }
+    
+    if (empty($data['title'])) {
+        $logger->error('عنوان المهمة مطلوب', ['data' => $data]);
+        return ['valid' => false, 'message' => 'عنوان المهمة مطلوب'];
+    }
+    
+    // التأكد من وجود القيم الأساسية وتعيين القيم الافتراضية
+    $cleanData = [
+        'title' => trim($data['title']),
+        'description' => isset($data['description']) ? trim($data['description']) : '',
+        'status' => isset($data['status']) && in_array($data['status'], ['pending', 'in-progress', 'completed', 'cancelled']) 
+            ? $data['status'] 
+            : 'pending'
+    ];
+    
+    $logger->info('تم التحقق من صحة البيانات بنجاح', ['cleanData' => $cleanData]);
+    return ['valid' => true, 'data' => $cleanData];
+}
+
+try {
+    $logger->info('بدء معالجة الطلب', [
+        'method' => $method,
+        'request_data' => file_get_contents('php://input'),
+        'request_headers' => getallheaders()
+    ]);
+
+    switch ($method) {
+        case 'GET':
+            $result = $db->query('SELECT * FROM tasks ORDER BY created_at DESC');
+            $tasks = [];
+            
+            while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+                // حساب نسبة التقدم من المهام الفرعية
+                $subtasksResult = $db->query('
+                    SELECT COUNT(*) as total,
+                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed
+                    FROM subtasks
+                    WHERE task_id = :task_id
+                ', [':task_id' => $row['id']]);
                 
-                if ($task) {
-                    // تحويل المهام الفرعية إلى مصفوفة
-                    if ($task['subtask_ids']) {
-                        $subtasks = [];
-                        $ids = explode(',', $task['subtask_ids']);
-                        $titles = explode(',', $task['subtask_titles']);
-                        $statuses = explode(',', $task['subtask_statuses']);
-                        $priorities = explode(',', $task['subtask_priorities']);
-                        
-                        for ($i = 0; $i < count($ids); $i++) {
-                            $subtasks[] = [
-                                'id' => $ids[$i],
-                                'title' => $titles[$i],
-                                'status' => $statuses[$i],
-                                'priority' => $priorities[$i]
-                            ];
-                        }
-                        $task['subtasks'] = $subtasks;
-                    }
-                    
-                    // جلب التقارير المرتبطة
-                    $reportsStmt = $pdo->prepare("SELECT * FROM reports WHERE task_id = ? ORDER BY created_at DESC");
-                    $reportsStmt->execute([$taskId]);
-                    $task['reports'] = $reportsStmt->fetchAll();
-                    
-                    echo json_encode(['success' => true, 'task' => $task]);
-                } else {
-                    http_response_code(404);
-                    echo json_encode(['success' => false, 'message' => 'المهمة غير موجودة']);
-                }
-            } else {
-                // جلب جميع المهام مع المهام الفرعية
-                $stmt = $pdo->query("
-                    SELECT t.*, 
-                           GROUP_CONCAT(st.id) as subtask_ids,
-                           GROUP_CONCAT(st.title) as subtask_titles,
-                           GROUP_CONCAT(st.status) as subtask_statuses,
-                           GROUP_CONCAT(st.priority) as subtask_priorities
-                    FROM tasks t
-                    LEFT JOIN subtasks st ON t.id = st.task_id
-                    WHERE t.parent_id IS NULL
-                    GROUP BY t.id
-                    ORDER BY t.priority DESC, t.created_at DESC
-                ");
-                $tasks = $stmt->fetchAll();
+                $subtasks = $subtasksResult->fetchArray(SQLITE3_ASSOC);
                 
-                // تحويل المهام الفرعية لكل مهمة
-                foreach ($tasks as &$task) {
-                    if ($task['subtask_ids']) {
-                        // نفس المنطق السابق لتحويل المهام الفرعية
-                    }
-                    
-                    // جلب التقارير لكل مهمة
-                    $reportsStmt = $pdo->prepare("SELECT * FROM reports WHERE task_id = ? ORDER BY created_at DESC");
-                    $reportsStmt->execute([$task['id']]);
-                    $task['reports'] = $reportsStmt->fetchAll();
+                $row['progress'] = 0;
+                if ($subtasks && $subtasks['total'] > 0) {
+                    $row['progress'] = ($subtasks['completed'] / $subtasks['total']) * 100;
                 }
                 
-                echo json_encode(['success' => true, 'tasks' => $tasks]);
-            }
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'خطأ في جلب المهام']);
-        }
-        break;
-
-    case 'POST':
-        try {
-            $title = cleanInput($_POST['title']);
-            $description = cleanInput($_POST['description']);
-            
-            $stmt = $pdo->prepare("INSERT INTO tasks (title, description) VALUES (?, ?)");
-            $stmt->execute([$title, $description]);
-            
-            echo json_encode(['success' => true, 'message' => 'تم إضافة المهمة بنجاح']);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'خطأ في إضافة المهمة']);
-        }
-        break;
-
-    case 'PUT':
-        try {
-            $data = json_decode(file_get_contents('php://input'), true);
-            $id = (int)$data['id'];
-            $title = cleanInput($data['title']);
-            $description = cleanInput($data['description']);
-            
-            $stmt = $pdo->prepare("UPDATE tasks SET title = ?, description = ? WHERE id = ?");
-            $stmt->execute([$title, $description, $id]);
-            
-            echo json_encode(['success' => true, 'message' => 'تم تحديث المهمة بنجاح']);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'خطأ في تحديث المهمة']);
-        }
-        break;
-
-    case 'DELETE':
-        try {
-            $id = (int)$_GET['id'];
-            $stmt = $pdo->prepare("DELETE FROM tasks WHERE id = ?");
-            $stmt->execute([$id]);
-            
-            echo json_encode(['success' => true, 'message' => 'تم حذف المهمة بنجاح']);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'خطأ في حذف المهمة']);
-        }
-        break;
-
-    case 'PATCH':
-        try {
-            $data = json_decode(file_get_contents('php://input'), true);
-            $id = (int)$data['id'];
-            
-            // التحقق من نوع التحديث
-            if (isset($data['status_type'])) {
-                // تحديث نوع الحالة
-                $stmt = $pdo->prepare("UPDATE tasks SET status_type = ? WHERE id = ?");
-                $stmt->execute([$data['status_type'], $id]);
-            } else if (isset($data['status'])) {
-                // تحديث حالة الإكمال
-                $status = (bool)$data['status'];
-                $stmt = $pdo->prepare("UPDATE tasks SET status = ? WHERE id = ?");
-                $stmt->execute([$status, $id]);
+                $tasks[] = $row;
             }
             
-            echo json_encode(['success' => true, 'message' => 'تم تحديث حالة المهمة بنجاح']);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'خطأ في تحديث حالة المهمة']);
-        }
-        break;
+            $logger->info('تم جلب المهام بنجاح', ['count' => count($tasks)]);
+            echo json_encode(['success' => true, 'tasks' => $tasks]);
+            break;
+            
+        case 'POST':
+            $rawInput = file_get_contents('php://input');
+            $logger->debug('البيانات المستلمة', ['raw_input' => $rawInput]);
+            
+            $input = json_decode($rawInput, true);
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $logger->error('خطأ في تحليل JSON', ['error' => json_last_error_msg()]);
+                throw new Exception('خطأ في تحليل البيانات المرسلة');
+            }
+            
+            $validation = validateTaskData($input);
+            
+            if (!$validation['valid']) {
+                $logger->warning('فشل التحقق من صحة البيانات', ['validation' => $validation]);
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => $validation['message']]);
+                break;
+            }
+            
+            $data = $validation['data'];
+            
+            try {
+                $result = $db->query('
+                    INSERT INTO tasks (title, description, status)
+                    VALUES (:title, :description, :status)
+                ', [
+                    ':title' => $data['title'],
+                    ':description' => $data['description'],
+                    ':status' => $data['status']
+                ]);
+                
+                $newId = $db->lastInsertId();
+                $logger->info('تم إنشاء مهمة جديدة', ['task_id' => $newId, 'data' => $data]);
+                
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'تم إنشاء المهمة بنجاح',
+                    'id' => $newId
+                ]);
+            } catch (Exception $e) {
+                $logger->error('فشل في إنشاء المهمة', [
+                    'error' => $e->getMessage(),
+                    'data' => $data
+                ]);
+                throw new Exception('فشل في إنشاء المهمة: ' . $e->getMessage());
+            }
+            break;
+            
+        case 'PUT':
+            $rawInput = file_get_contents('php://input');
+            $input = json_decode($rawInput, true);
+            
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                $logger->error('خطأ في تحليل JSON للتحديث', ['error' => json_last_error_msg()]);
+                throw new Exception('خطأ في تحليل البيانات المرسلة');
+            }
+            
+            if (empty($input['id'])) {
+                $logger->error('معرف المهمة مطلوب للتحديث', ['input' => $input]);
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'معرف المهمة مطلوب']);
+                break;
+            }
+            
+            $validation = validateTaskData($input);
+            if (!$validation['valid']) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => $validation['message']]);
+                break;
+            }
+            
+            $data = $validation['data'];
+            
+            try {
+                $result = $db->query('
+                    UPDATE tasks 
+                    SET title = :title,
+                        description = :description,
+                        status = :status
+                    WHERE id = :id
+                ', [
+                    ':id' => $input['id'],
+                    ':title' => $data['title'],
+                    ':description' => $data['description'],
+                    ':status' => $data['status']
+                ]);
+                
+                $logger->info('تم تحديث المهمة بنجاح', [
+                    'task_id' => $input['id'],
+                    'data' => $data
+                ]);
+                
+                echo json_encode(['success' => true, 'message' => 'تم تحديث المهمة بنجاح']);
+            } catch (Exception $e) {
+                $logger->error('فشل في تحديث المهمة', [
+                    'error' => $e->getMessage(),
+                    'task_id' => $input['id'],
+                    'data' => $data
+                ]);
+                throw $e;
+            }
+            break;
+            
+        case 'DELETE':
+            if (!isset($_GET['id'])) {
+                $logger->error('معرف المهمة مطلوب للحذف');
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'معرف المهمة مطلوب']);
+                break;
+            }
+            
+            try {
+                $result = $db->query('DELETE FROM tasks WHERE id = :id', [':id' => $_GET['id']]);
+                $logger->info('تم حذف المهمة بنجاح', ['task_id' => $_GET['id']]);
+                echo json_encode(['success' => true, 'message' => 'تم حذف المهمة بنجاح']);
+            } catch (Exception $e) {
+                $logger->error('فشل في حذف المهمة', [
+                    'error' => $e->getMessage(),
+                    'task_id' => $_GET['id']
+                ]);
+                throw $e;
+            }
+            break;
+            
+        default:
+            $logger->warning('طريقة طلب ��ير مدعومة', ['method' => $method]);
+            http_response_code(405);
+            echo json_encode(['success' => false, 'message' => 'طريقة الطلب غير مدعومة']);
+            break;
+    }
+} catch (Exception $e) {
+    $logger->error('خطأ في الخادم', [
+        'error' => $e->getMessage(),
+        'trace' => $e->getTraceAsString(),
+        'method' => $method,
+        'request_uri' => $_SERVER['REQUEST_URI']
+    ]);
+    
+    http_response_code(500);
+    echo json_encode([
+        'success' => false,
+        'message' => 'حدث خطأ في الخادم: ' . $e->getMessage()
+    ]);
 } 

@@ -1,149 +1,129 @@
 <?php
-require_once '../config/database.php';
-require_once '../helpers/functions.php';
-
 header('Content-Type: application/json');
+require_once 'database.php';
+require_once 'Logger.php';
 
-switch ($_SERVER['REQUEST_METHOD']) {
-    case 'GET':
-        try {
-            $taskId = isset($_GET['task_id']) ? (int)$_GET['task_id'] : 0;
-            $stmt = $pdo->prepare("
+$db = new Database();
+$logger = new Logger();
+
+// تحديد طريقة الطلب
+$method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+
+try {
+    $logger->info('بدء معالجة طلب المهام الفرعية', [
+        'method' => $method,
+        'request_data' => file_get_contents('php://input')
+    ]);
+
+    switch ($method) {
+        case 'GET':
+            if (!isset($_GET['task_id'])) {
+                throw new Exception('معرف المهمة الرئيسية مطلوب');
+            }
+
+            $result = $db->query('
                 SELECT * FROM subtasks 
-                WHERE task_id = ? 
-                ORDER BY priority DESC, created_at ASC
-            ");
-            $stmt->execute([$taskId]);
-            $subtasks = $stmt->fetchAll();
-            echo json_encode(['success' => true, 'subtasks' => $subtasks]);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'خطأ في جلب المهام الفرعية']);
-        }
-        break;
+                WHERE task_id = :task_id 
+                ORDER BY created_at ASC
+            ', [':task_id' => $_GET['task_id']]);
 
-    case 'POST':
-        try {
-            $taskId = (int)$_POST['task_id'];
-            $title = cleanInput($_POST['title']);
-            $priority = (int)$_POST['priority'];
-            
-            // التحقق من وجود المهمة الرئيسية
-            $checkStmt = $pdo->prepare("SELECT id FROM tasks WHERE id = ?");
-            $checkStmt->execute([$taskId]);
-            if (!$checkStmt->fetch()) {
-                http_response_code(404);
-                echo json_encode(['success' => false, 'message' => 'المهمة الرئيسية غير موجودة']);
-                break;
+            $subtasks = [];
+            while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+                $subtasks[] = $row;
             }
-            
-            // الحصول على أعلى ترتيب للمهام الفرعية الحالية
-            $orderStmt = $pdo->prepare("
-                SELECT MAX(priority) as max_order 
-                FROM subtasks 
-                WHERE task_id = ?
-            ");
-            $orderStmt->execute([$taskId]);
-            $maxOrder = $orderStmt->fetch()['max_order'];
-            $newOrder = $maxOrder ? $maxOrder + 1 : 1;
-            
-            $stmt = $pdo->prepare("
-                INSERT INTO subtasks (task_id, title, priority) 
-                VALUES (?, ?, ?)
-            ");
-            $stmt->execute([$taskId, $title, $newOrder]);
-            
-            echo json_encode([
-                'success' => true, 
-                'message' => 'تم إضافة المهمة الفرعية بنجاح',
-                'subtask_id' => $pdo->lastInsertId()
+
+            $logger->info('تم جلب المهام الفرعية', [
+                'task_id' => $_GET['task_id'],
+                'count' => count($subtasks)
             ]);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'خطأ في إضافة المهمة الفرعية']);
-        }
-        break;
 
-    case 'PUT':
-        try {
-            $data = json_decode(file_get_contents('php://input'), true);
-            $id = (int)$data['id'];
-            $title = cleanInput($data['title']);
-            $priority = (int)$data['priority'];
+            echo json_encode(['success' => true, 'subtasks' => $subtasks]);
+            break;
+
+        case 'POST':
+            $input = json_decode(file_get_contents('php://input'), true);
             
-            $stmt = $pdo->prepare("
+            if (!isset($input['task_id']) || !isset($input['title'])) {
+                throw new Exception('البيانات المطلوبة غير مكتملة');
+            }
+
+            $result = $db->query('
+                INSERT INTO subtasks (task_id, title)
+                VALUES (:task_id, :title)
+            ', [
+                ':task_id' => $input['task_id'],
+                ':title' => trim($input['title'])
+            ]);
+
+            $newId = $db->lastInsertId();
+            $logger->info('تم إضافة مهمة فرعية جديدة', [
+                'id' => $newId,
+                'task_id' => $input['task_id']
+            ]);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'تم إضافة المهمة الفرعية بنجاح',
+                'id' => $newId
+            ]);
+            break;
+
+        case 'PUT':
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            if (!isset($input['id']) || !isset($input['completed'])) {
+                throw new Exception('البيانات المطلوبة غير مكتملة');
+            }
+
+            $result = $db->query('
                 UPDATE subtasks 
-                SET title = ?, priority = ? 
-                WHERE id = ?
-            ");
-            $stmt->execute([$title, $priority, $id]);
-            
-            echo json_encode(['success' => true, 'message' => 'تم تحديث المهمة الفرعية بنجاح']);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'خطأ في تحديث المهمة الفرعية']);
-        }
-        break;
+                SET completed = :completed
+                WHERE id = :id
+            ', [
+                ':id' => $input['id'],
+                ':completed' => $input['completed'] ? 1 : 0
+            ]);
 
-    case 'PATCH':
-        try {
-            $data = json_decode(file_get_contents('php://input'), true);
-            $id = (int)$data['id'];
-            
-            // تحديث الحالة
-            if (isset($data['status'])) {
-                $status = (bool)$data['status'];
-                $stmt = $pdo->prepare("UPDATE subtasks SET status = ? WHERE id = ?");
-                $stmt->execute([$status, $id]);
-            }
-            
-            // تحديث الترتيب
-            if (isset($data['order'])) {
-                $order = (int)$data['order'];
-                // الحصول على task_id للمهمة الفرعية
-                $getTaskIdStmt = $pdo->prepare("SELECT task_id FROM subtasks WHERE id = ?");
-                $getTaskIdStmt->execute([$id]);
-                $taskId = $getTaskIdStmt->fetch()['task_id'];
-                
-                // تحديث ترتيب جميع المهام الفرعية
-                $stmt = $pdo->prepare("
-                    UPDATE subtasks 
-                    SET priority = ? 
-                    WHERE id = ?
-                ");
-                $stmt->execute([$order, $id]);
-                
-                // إعادة ترتيب باقي المهام الفرعية
-                reorderSubtasks($taskId);
-            }
-            
-            echo json_encode(['success' => true, 'message' => 'تم تحديث المهمة الفرعية بنجاح']);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'خطأ في تحديث المهمة الفرعية']);
-        }
-        break;
+            $logger->info('تم تحديث حالة المهمة الفرعية', [
+                'id' => $input['id'],
+                'completed' => $input['completed']
+            ]);
 
-    case 'DELETE':
-        try {
-            $id = (int)$_GET['id'];
-            
-            // الحصول على task_id قبل الحذف
-            $getTaskIdStmt = $pdo->prepare("SELECT task_id FROM subtasks WHERE id = ?");
-            $getTaskIdStmt->execute([$id]);
-            $taskId = $getTaskIdStmt->fetch()['task_id'];
-            
-            // حذف المهمة الفرعية
-            $stmt = $pdo->prepare("DELETE FROM subtasks WHERE id = ?");
-            $stmt->execute([$id]);
-            
-            // إعادة ترتيب المهام الفرعية المتبقية
-            reorderSubtasks($taskId);
-            
-            echo json_encode(['success' => true, 'message' => 'تم حذف المهمة الفرعية بنجاح']);
-        } catch (PDOException $e) {
-            http_response_code(500);
-            echo json_encode(['success' => false, 'message' => 'خطأ في حذف المهمة الفرعية']);
-        }
-        break;
+            echo json_encode([
+                'success' => true,
+                'message' => 'تم تحديث المهمة الفرعية بنجاح'
+            ]);
+            break;
+
+        case 'DELETE':
+            if (!isset($_GET['id'])) {
+                throw new Exception('معرف المهمة الفرعية مطلوب');
+            }
+
+            $result = $db->query('
+                DELETE FROM subtasks WHERE id = :id
+            ', [':id' => $_GET['id']]);
+
+            $logger->info('تم حذف المهمة الفرعية', ['id' => $_GET['id']]);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'تم حذف المهمة الفرعية بنجاح'
+            ]);
+            break;
+
+        default:
+            throw new Exception('طريقة الطلب غير مدعومة');
+    }
+} catch (Exception $e) {
+    $logger->error('خطأ في معالجة طلب المهام الفرعية', [
+        'error' => $e->getMessage(),
+        'trace' => $e->getTraceAsString()
+    ]);
+
+    http_response_code(400);
+    echo json_encode([
+        'success' => false,
+        'message' => $e->getMessage()
+    ]);
 } 

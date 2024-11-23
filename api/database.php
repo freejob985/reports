@@ -62,6 +62,7 @@ class Database {
                 task_id INTEGER,
                 title TEXT NOT NULL,
                 completed BOOLEAN DEFAULT 0,
+                sort_order INTEGER DEFAULT 0,
                 created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
                 FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE
             )

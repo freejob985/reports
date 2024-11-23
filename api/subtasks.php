@@ -91,15 +91,20 @@ try {
                     throw new Exception('معرفات المهام مطلوبة لإعادة الترتيب');
                 }
 
-                // تحديث الترتيب
-                $result = $db->query('
+                // نقوم بتحديث الترتيب في قاعدة البيانات
+                $db->query('
+                    BEGIN TRANSACTION;
+                    
+                    -- حفظ الترتيب الحالي للعنصر المسحوب
                     UPDATE subtasks 
                     SET sort_order = (
                         SELECT sort_order 
                         FROM subtasks 
                         WHERE id = :dropped_id
                     )
-                    WHERE id = :dragged_id
+                    WHERE id = :dragged_id;
+                    
+                    COMMIT;
                 ', [
                     ':dragged_id' => $input['dragged_id'],
                     ':dropped_id' => $input['dropped_id']

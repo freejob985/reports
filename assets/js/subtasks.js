@@ -138,3 +138,49 @@ function deleteSubtask(subtaskId) {
         }
     });
 }
+
+function initDragAndDrop(containerId) {
+    const container = $(`#${containerId}`);
+
+    // تحسين معالجة السحب والإفلات
+    container.sortable({
+        items: '.subtask-draggable',
+        handle: '.drag-handle',
+        placeholder: 'subtask-placeholder',
+        update: function(event, ui) {
+            const draggedId = ui.item.data('subtask-id');
+            const droppedId = ui.item.next().data('subtask-id');
+
+            if (draggedId && droppedId) {
+                reorderSubtasks(draggedId, droppedId);
+            }
+        }
+    });
+}
+
+function reorderSubtasks(draggedId, droppedId) {
+    $.ajax({
+        url: 'api/subtasks.php',
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            action: 'reorder',
+            dragged_id: draggedId,
+            dropped_id: droppedId
+        }),
+        success: function(response) {
+            if (response.success) {
+                toastr.success('تم إعادة ترتيب المهام الفرعية بنجاح');
+            } else {
+                toastr.error(response.message || 'حدث خطأ أثناء إعادة الترتيب');
+                // إعادة تحميل المهام الفرعية في حالة الفشل
+                loadTaskSubtasks(currentTaskId);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error reordering subtasks:', error);
+            toastr.error('حدث خطأ أثناء إعادة الترتيب');
+            loadTaskSubtasks(currentTaskId);
+        }
+    });
+}

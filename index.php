@@ -355,18 +355,15 @@
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">التقارير</h5>
+                    <h5 class="modal-title">إضافة تقرير جديد</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
                     <div class="mb-3">
-                        <label class="form-label">تقرير جديد</label>
+                        <label class="form-label">محتوى التقرير</label>
                         <textarea id="reportContent"></textarea>
                     </div>
-                    <button class="btn btn-primary mb-3" onclick="addReport()">إضافة تقرير</button>
-                    <div id="reportsList">
-                        <!-- سيتم إضافة التقارير هنا -->
-                    </div>
+                    <button class="btn btn-primary" onclick="addReport()">إضافة تقرير</button>
                 </div>
             </div>
         </div>

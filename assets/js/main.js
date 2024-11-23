@@ -204,6 +204,17 @@ function renderTasks() {
                         </div>
                     </div>
 
+                    <!-- قسم التقارير -->
+                    <div class="reports-section mb-3">
+                        <h6 class="mb-3">التقارير</h6>
+                        <button class="btn btn-outline-primary mb-3" onclick="showReportsModal(${task.id})">
+                            <i class="fas fa-file-alt"></i> إضافة تقرير
+                        </button>
+                        <div id="reports-list-${task.id}">
+                            <!-- سيتم تحميل التقارير هنا -->
+                        </div>
+                    </div>
+
                     <!-- شريط التقدم -->
                     <div class="progress">
                         <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
@@ -214,6 +225,7 @@ function renderTasks() {
 
         tasksList.append(taskElement);
         loadTaskSubtasks(task.id);
+        loadTaskReports(task.id);
     });
 }
 
@@ -293,7 +305,12 @@ function loadTaskReports(taskId) {
         success: function(response) {
             if (response.success) {
                 renderTaskReports(taskId, response.reports);
+            } else {
+                console.error('Error loading reports:', response.message);
             }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading reports:', error);
         }
     });
 }
@@ -428,27 +445,33 @@ function toggleSubtask(subtaskId, completed, taskId) {
     });
 }
 
-// دالة عرض التقاري��
+// دالة عرض التقارير
 function renderTaskReports(taskId, reports) {
     const reportsList = $(`#reports-list-${taskId}`);
     reportsList.empty();
 
-    if (reports.length === 0) {
-        reportsList.append('<div class="text-muted small">لا توجد تقارير</div>');
+    if (!reports || reports.length === 0) {
+        reportsList.append('<div class="text-muted">لا توجد تقارير</div>');
         return;
     }
 
-    // عرض ملخص فقط
-    const latestReport = reports[0];
-    const reportDate = new Date(latestReport.created_at).toLocaleString('ar-SA');
-
-    const summary = $(`
-        <div class="d-flex justify-content-between align-items-center">
-            <span class="text-muted">عدد التقارير: ${reports.length}</span>
-            <span class="text-muted">آخر تحديث: ${reportDate}</span>
-        </div>
-    `);
-    reportsList.append(summary);
+    reports.forEach(report => {
+        const reportDate = new Date(report.created_at).toLocaleString('ar-SA');
+        const reportElement = $(`
+            <div class="card mb-2">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <small class="text-muted">${reportDate}</small>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteReport(${report.id}, ${taskId})">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                <div class="card-body">
+                    ${report.html_content}
+                </div>
+            </div>
+        `);
+        reportsList.append(reportElement);
+    });
 }
 
 // إضافة دالة معالجة ضغط Enter في حقل المهمة الفرعية

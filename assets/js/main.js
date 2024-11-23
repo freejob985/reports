@@ -329,19 +329,84 @@ function renderTaskSubtasks(taskId, subtasks) {
 
     subtasks.forEach(subtask => {
         const element = $(`
-            <div class="list-group-item d-flex justify-content-between align-items-center">
+            <div class="list-group-item d-flex justify-content-between align-items-center ${subtask.completed ? 'completed-subtask' : ''}"
+                 data-subtask-id="${subtask.id}">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" 
                            ${subtask.completed ? 'checked' : ''}
-                           onchange="toggleSubtask(${subtask.id}, this.checked)">
+                           onchange="toggleSubtask(${subtask.id}, this.checked, ${taskId})">
                     <label class="form-check-label">${escapeHtml(subtask.title)}</label>
                 </div>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteSubtask(${subtask.id})">
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteSubtask(${subtask.id}, ${taskId})">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
         `);
         subtasksList.append(element);
+    });
+
+    // تحديث تقدم المهمة
+    updateTaskProgress(taskId, subtasks);
+}
+
+// إضافة دالة تحديث تقدم المهمة
+function updateTaskProgress(taskId, subtasks) {
+    const totalSubtasks = subtasks.length;
+    const completedSubtasks = subtasks.filter(s => s.completed).length;
+    const progress = totalSubtasks > 0 ? (completedSubtasks / totalSubtasks) * 100 : 0;
+
+    const progressBar = $(`.task-card[data-task-id="${taskId}"] .progress-bar`);
+
+    // تحديث تدريجي للنسبة
+    $({ percent: parseFloat(progressBar.css('width')) || 0 }).animate({ percent: progress }, {
+        duration: 600,
+        easing: 'easeOutQuart',
+        step: function(now) {
+            progressBar.css('width', now + '%');
+            progressBar.text(Math.round(now) + '%');
+        },
+        complete: function() {
+            // تحديث حالة المهمة المكتملة
+            const taskCard = $(`.task-card[data-task-id="${taskId}"]`);
+            if (progress === 100) {
+                taskCard.addClass('completed-task');
+            } else {
+                taskCard.removeClass('completed-task');
+            }
+        }
+    });
+}
+
+// تحديث دالة toggleSubtask
+function toggleSubtask(subtaskId, completed, taskId) {
+    $.ajax({
+        url: 'api/subtasks.php',
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            id: subtaskId,
+            completed: completed
+        }),
+        success: function(response) {
+            if (response.success) {
+                // تحديث المظهر بدون إعادة تحميل
+                const subtaskElement = $(`.list-group-item[data-subtask-id="${subtaskId}"]`);
+                if (completed) {
+                    subtaskElement.addClass('completed-subtask');
+                } else {
+                    subtaskElement.removeClass('completed-subtask');
+                }
+
+                // تحديث التقدم
+                loadTaskSubtasks(taskId);
+            } else {
+                toastr.error(response.message || 'حدث خطأ أثناء تحديث المهمة الفرعية');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error updating subtask:', error);
+            toastr.error('حدث خطأ أثناء تحديث المهمة الفرعية');
+        }
     });
 }
 

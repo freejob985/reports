@@ -86,6 +86,32 @@ try {
         case 'PUT':
             $input = json_decode(file_get_contents('php://input'), true);
             
+            if (isset($input['action']) && $input['action'] === 'reorder') {
+                if (!isset($input['dragged_id']) || !isset($input['dropped_id'])) {
+                    throw new Exception('معرفات المهام مطلوبة لإعادة الترتيب');
+                }
+
+                // تحديث الترتيب
+                $result = $db->query('
+                    UPDATE subtasks 
+                    SET sort_order = (
+                        SELECT sort_order 
+                        FROM subtasks 
+                        WHERE id = :dropped_id
+                    )
+                    WHERE id = :dragged_id
+                ', [
+                    ':dragged_id' => $input['dragged_id'],
+                    ':dropped_id' => $input['dropped_id']
+                ]);
+
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'تم إعادة ترتيب المهام الفرعية بنجاح'
+                ]);
+                break;
+            }
+
             if (!isset($input['id']) || !isset($input['completed'])) {
                 throw new Exception('البيانات المطلوبة غير مكتملة');
             }

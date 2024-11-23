@@ -20,8 +20,10 @@
     
     <style>
         :root {
-            --primary-gradient: linear-gradient(135deg, #4CAF50 0%, #2196F3 100%);
+            --primary-gradient: linear-gradient(135deg, #2196F3 0%, #4CAF50 100%);
             --secondary-gradient: linear-gradient(135deg, #FF9800 0%, #FF5722 100%);
+            --success-gradient: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            --danger-gradient: linear-gradient(135deg, #f44336 0%, #d32f2f 100%);
         }
 
         body {
@@ -188,6 +190,53 @@
         @keyframes fadeIn {
             from { opacity: 0; transform: translateY(-5px); }
             to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* تحديث أزرار الكارد */
+        .task-card .btn-outline-primary {
+            color: #2196F3;
+            border-color: #2196F3;
+            transition: all 0.3s ease;
+        }
+
+        .task-card .btn-outline-primary:hover {
+            background: var(--primary-gradient);
+            border-color: transparent;
+            color: white;
+        }
+
+        .task-card .btn-outline-danger {
+            color: #f44336;
+            border-color: #f44336;
+        }
+
+        .task-card .btn-outline-danger:hover {
+            background: var(--danger-gradient);
+            border-color: transparent;
+            color: white;
+        }
+
+        /* تصميم المهام الفرعية القابلة للسحب */
+        .subtask-draggable {
+            cursor: move;
+            user-select: none;
+            transition: background-color 0.3s ease;
+        }
+
+        .subtask-draggable.dragging {
+            opacity: 0.5;
+            background-color: #f8f9fa;
+        }
+
+        .subtask-drop-zone {
+            border: 2px dashed #ccc;
+            margin: 5px 0;
+            min-height: 40px;
+            display: none;
+        }
+
+        .subtask-drop-zone.active {
+            display: block;
         }
     </style>
 </head>

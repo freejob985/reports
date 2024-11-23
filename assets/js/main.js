@@ -329,25 +329,27 @@ function renderTaskSubtasks(taskId, subtasks) {
         return;
     }
 
-    subtasks.forEach(subtask => {
+    subtasks.forEach((subtask, index) => {
         const element = $(`
-            <div class="list-group-item d-flex justify-content-between align-items-center ${subtask.completed ? 'completed-subtask' : ''}"
+            <div class="list-group-item subtask-draggable d-flex justify-content-between align-items-center ${subtask.completed ? 'completed-subtask' : ''}"
                  data-subtask-id="${subtask.id}">
                 <div class="form-check">
                     <input class="form-check-input" type="checkbox" 
                            ${subtask.completed ? 'checked' : ''}
                            onchange="toggleSubtask(${subtask.id}, this.checked, ${taskId})">
-                    <label class="form-check-label" style="${subtask.completed ? 'text-decoration: line-through;' : ''}">${escapeHtml(subtask.title)}</label>
+                    <label class="form-check-label">${escapeHtml(subtask.title)}</label>
                 </div>
                 <button class="btn btn-sm btn-outline-danger" onclick="deleteSubtask(${subtask.id}, ${taskId})">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
+            <div class="subtask-drop-zone"></div>
         `);
         subtasksList.append(element);
     });
 
-    // تحديث تقدم المهمة
+    // تهيئة خاصية السحب والإفلات
+    initDragAndDrop(`subtasks-list-${taskId}`);
     updateTaskProgress(taskId, subtasks);
 }
 
@@ -462,7 +464,6 @@ function handleSubtaskKeyPress(event, taskId) {
  * @param {number} taskId - معرف المهمة الرئيسية
  */
 function addSubtask(taskId) {
-    // تحديد حقل الإدخال باستخدام معرف المهمة
     const input = $(`.subtask-input[data-task-id="${taskId}"]`);
     const title = input.val().trim();
 
@@ -470,15 +471,10 @@ function addSubtask(taskId) {
     input.removeClass('is-invalid');
     input.parent().find('.error-message').remove();
 
-    // التحقق من القيمة المدخلة
     if (!title) {
-        input.addClass('is-invalid');
-        input.parent().append('<div class="error-message text-danger mt-1">يرجى إدخال عنوان المهمة الفرعية</div>');
-        input.focus();
         return;
     }
 
-    // إرسال طلب إضافة المهمة الفرعية
     $.ajax({
         url: 'api/subtasks.php',
         method: 'POST',
@@ -488,35 +484,102 @@ function addSubtask(taskId) {
             title: title
         }),
         beforeSend: function() {
-            // تعطيل حقل الإدخال والزر أثناء الإرسال
             input.prop('disabled', true);
             input.siblings('button').prop('disabled', true);
         },
         success: function(response) {
             if (response.success) {
-                // مسح حقل الإدخال وإعادة التركيز
-                input.val('').removeClass('is-invalid');
-                input.focus();
-
-                // تحديث قائمة المهام الفرعية
+                input.val('');
                 loadTaskSubtasks(taskId);
-
-                // إظهار رسالة نجاح
                 toastr.success('تم إضافة المهمة الفرعية بنجاح');
             } else {
                 toastr.error(response.message || 'حدث خطأ أثناء إضافة المهمة الفرعية');
-                input.addClass('is-invalid');
             }
         },
         error: function(xhr, status, error) {
             console.error('Error adding subtask:', error);
             toastr.error('حدث خطأ أثناء إضافة المهمة الفرعية');
-            input.addClass('is-invalid');
         },
         complete: function() {
-            // إعادة تفعيل حقل الإدخال والزر
             input.prop('disabled', false);
             input.siblings('button').prop('disabled', false);
+            input.focus();
+        }
+    });
+}
+
+/**
+ * تهيئة خاصية السحب والإفلات للمهام الفرعية
+ * @param {string} containerId - معرف حاوية المهام الفرعية
+ */
+function initDragAndDrop(containerId) {
+    const container = $(`#${containerId}`);
+    const items = container.find('.subtask-draggable');
+
+    items.each(function() {
+        $(this).attr('draggable', true);
+
+        $(this).on('dragstart', function(e) {
+            e.originalEvent.dataTransfer.setData('text/plain', $(this).data('subtask-id'));
+            $(this).addClass('dragging');
+        });
+
+        $(this).on('dragend', function() {
+            $(this).removeClass('dragging');
+            $('.subtask-drop-zone').removeClass('active');
+        });
+
+        $(this).on('dragover', function(e) {
+            e.preventDefault();
+            const draggingItem = $('.dragging');
+            if (!draggingItem.is($(this))) {
+                const dropZone = $(this).next('.subtask-drop-zone');
+                dropZone.addClass('active');
+            }
+        });
+
+        $(this).on('dragleave', function() {
+            $(this).next('.subtask-drop-zone').removeClass('active');
+        });
+
+        $(this).on('drop', function(e) {
+            e.preventDefault();
+            const draggedId = e.originalEvent.dataTransfer.getData('text/plain');
+            const droppedId = $(this).data('subtask-id');
+
+            if (draggedId !== droppedId) {
+                reorderSubtasks(draggedId, droppedId);
+            }
+        });
+    });
+}
+
+/**
+ * إعادة ترتيب المهام الفرعية
+ * @param {number} draggedId - معرف المهمة المسحوبة
+ * @param {number} droppedId - معرف المهمة المفلوت عليها
+ */
+function reorderSubtasks(draggedId, droppedId) {
+    $.ajax({
+        url: 'api/subtasks.php',
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            action: 'reorder',
+            dragged_id: draggedId,
+            dropped_id: droppedId
+        }),
+        success: function(response) {
+            if (response.success) {
+                loadTaskSubtasks(currentTaskId);
+                toastr.success('تم إعادة ترتيب المهام الفرعية بنجاح');
+            } else {
+                toastr.error('حدث خطأ أثناء إعادة الترتيب');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error reordering subtasks:', error);
+            toastr.error('حدث خطأ أثناء إعادة الترتيب');
         }
     });
 }

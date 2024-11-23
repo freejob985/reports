@@ -218,40 +218,34 @@ function renderTasks() {
     }
 
     tasks.forEach(task => {
-        const statusBadgeClass = {
-            'pending': 'bg-warning',
-            'in-progress': 'bg-info',
-            'completed': 'bg-success',
-            'cancelled': 'bg-danger'
-        }[task.status] || 'bg-secondary';
-
+        const statusBadgeClass = getStatusBadgeClass(task.status);
         const taskElement = $(`
             <div class="card mb-4 task-card" data-task-id="${task.id}">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <h5 class="mb-0">
-                        ${escapeHtml(task.title)}
-                        <div class="dropdown d-inline-block ms-2">
-                            <span class="badge ${statusBadgeClass} dropdown-toggle" 
-                                  role="button" 
-                                  data-bs-toggle="dropdown">
-                                ${getStatusText(task.status)}
-                            </span>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" href="#" onclick="quickUpdateStatus(${task.id}, 'pending')">قيد الانتظار</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="quickUpdateStatus(${task.id}, 'in-progress')">قيد التنفيذ</a></li>
-                                <li><a class="dropdown-item" href="#" onclick="quickUpdateStatus(${task.id}, 'completed')">مكتملة</a></li>
-                                <li><hr class="dropdown-divider"></li>
-                                <li><a class="dropdown-item text-danger" href="#" onclick="quickUpdateStatus(${task.id}, 'cancelled')">ملغاة</a></li>
-                            </ul>
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <h5 class="mb-0">
+                            ${escapeHtml(task.title)}
+                        </h5>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary" onclick="editTask(${task.id})" title="تحرير المهمة">
+                                <i class="fas fa-edit"></i> تحرير
+                            </button>
+                            <button class="btn btn-sm btn-outline-success" onclick="quickUpdateStatus(${task.id}, 'completed')" title="إكمال المهمة">
+                                <i class="fas fa-check"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteTask(${task.id})" title="حذف المهمة">
+                                <i class="fas fa-trash"></i>
+                            </button>
                         </div>
-                    </h5>
-                    <div class="btn-group">
-                        <button class="btn btn-sm btn-outline-primary" onclick="editTask(${task.id})" title="تحرير">
-                            <i class="fas fa-edit"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteTask(${task.id})" title="حذف">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                    </div>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge ${statusBadgeClass} status-badge" 
+                              style="cursor: pointer;"
+                              onclick="showStatusModal(${task.id})"
+                              title="تغيير الحالة">
+                            ${getStatusText(task.status)}
+                            <i class="fas fa-edit ms-1"></i>
+                        </span>
                     </div>
                 </div>
                 <div class="card-body">
@@ -686,6 +680,75 @@ function reorderSubtasks(draggedId, droppedId) {
         error: function(xhr, status, error) {
             console.error('Error reordering subtasks:', error);
             toastr.error('حدث خطأ أثناء إعادة الترتيب');
+        }
+    });
+}
+
+// إضافة دالة للحصول على لون الحالة
+function getStatusBadgeClass(status) {
+    return {
+        'pending': 'bg-warning',
+        'in-progress': 'bg-info',
+        'completed': 'bg-success',
+        'cancelled': 'bg-danger'
+    }[status] || 'bg-secondary';
+}
+
+// إضافة دالة لعرض نافذة تغيير الحالة
+function showStatusModal(taskId) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    Swal.fire({
+        title: 'تغيير حالة المهمة',
+        html: `
+            <div class="btn-group-vertical w-100">
+                <button type="button" class="btn btn-outline-warning mb-2" onclick="updateTaskStatus(${taskId}, 'pending')">
+                    قيد الانتظار
+                </button>
+                <button type="button" class="btn btn-outline-info mb-2" onclick="updateTaskStatus(${taskId}, 'in-progress')">
+                    قيد التنفيذ
+                </button>
+                <button type="button" class="btn btn-outline-success mb-2" onclick="updateTaskStatus(${taskId}, 'completed')">
+                    مكتملة
+                </button>
+                <button type="button" class="btn btn-outline-danger" onclick="updateTaskStatus(${taskId}, 'cancelled')">
+                    ملغاة
+                </button>
+            </div>
+        `,
+        showConfirmButton: false,
+        showCloseButton: true
+    });
+}
+
+// إضافة دالة لتحديث حالة المهمة
+function updateTaskStatus(taskId, status) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) return;
+
+    $.ajax({
+        url: 'api/tasks.php',
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            id: taskId,
+            title: task.title,
+            description: task.description,
+            status: status
+        }),
+        success: function(response) {
+            if (response.success) {
+                Swal.close();
+                loadTasks();
+                toastr.success('تم تحديث حالة المهمة بنجاح');
+            } else {
+                toastr.error(response.message || 'حدث خطأ أثناء تحديث حالة المهمة');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error updating task status:', error);
+            toastr.error('حدث خطأ أثناء تحديث حالة المهمة');
         }
     });
 }

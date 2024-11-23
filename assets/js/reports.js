@@ -144,26 +144,35 @@
         });
     };
 
-    // إضافة دالة حساب الوقت منذ كتابة التقرير
-    function timeAgo(date) {
-        const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+    // تحويل الفرق إلى الوحدة المناسبة
+    function timeAgo(dateString) {
+        const date = new Date(dateString.replace(' ', 'T')); // تحويل التاريخ إلى صيغة ISO
+        const now = new Date();
+        const diffInSeconds = Math.floor((now - date) / 1000);
 
-        let interval = seconds / 31536000;
-        if (interval > 1) return Math.floor(interval) + ' سنة';
+        // تحويل الفرق إلى الوحدة المناسبة
+        const intervals = {
+            سنة: 31536000,
+            شهر: 2592000,
+            يوم: 86400,
+            ساعة: 3600,
+            دقيقة: 60,
+            ثانية: 1
+        };
 
-        interval = seconds / 2592000;
-        if (interval > 1) return Math.floor(interval) + ' شهر';
+        for (const [unit, seconds] of Object.entries(intervals)) {
+            const interval = Math.floor(diffInSeconds / seconds);
 
-        interval = seconds / 86400;
-        if (interval > 1) return Math.floor(interval) + ' يوم';
+            if (interval >= 1) {
+                // معالجة صيغة الجمع
+                if (unit === 'شهر' && interval >= 3 && interval <= 10) {
+                    return `منذ ${interval} أشهر`;
+                }
+                return `منذ ${interval} ${unit}${interval > 2 ? 'ات' : ''}`;
+            }
+        }
 
-        interval = seconds / 3600;
-        if (interval > 1) return Math.floor(interval) + ' ساعة';
-
-        interval = seconds / 60;
-        if (interval > 1) return Math.floor(interval) + ' دقيقة';
-
-        return Math.floor(seconds) + ' ثانية';
+        return 'الآن';
     }
 
     // تعديل دالة renderTaskReports
@@ -178,12 +187,20 @@
 
         reports.forEach(report => {
             const timeAgoText = timeAgo(report.created_at);
+            const reportDate = new Date(report.created_at.replace(' ', 'T')).toLocaleString('ar-SA', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                hour: 'numeric',
+                minute: 'numeric'
+            });
+
             const reportElement = $(`
-                <div class="card mb-2 report-card">
+                <div class="card mb-2 report-card" data-report-id="${report.id}">
                     <div class="card-header d-flex justify-content-between align-items-center">
                         <div>
-                            <small class="text-muted">منذ ${timeAgoText}</small>
-                            <small class="text-muted ms-2">${new Date(report.created_at).toLocaleString('ar-SA')}</small>
+                            <span class="time-ago">${timeAgoText}</span>
+                            <small class="text-muted ms-2">${reportDate}</small>
                         </div>
                         <div class="btn-group">
                             <button class="btn btn-sm btn-outline-primary me-2" onclick="editReport(${report.id}, ${taskId})">
@@ -206,7 +223,7 @@
         setInterval(() => {
             reports.forEach(report => {
                 const timeAgoText = timeAgo(report.created_at);
-                $(`[data-report-id="${report.id}"] .time-ago`).text(`منذ ${timeAgoText}`);
+                $(`.report-card[data-report-id="${report.id}"] .time-ago`).text(timeAgoText);
             });
         }, 60000);
     };

@@ -142,11 +142,17 @@ function deleteSubtask(subtaskId) {
 function initDragAndDrop(containerId) {
     const container = $(`#${containerId}`);
 
-    // تحسين معالجة السحب والإفلات
     container.sortable({
         items: '.subtask-draggable',
         handle: '.drag-handle',
         placeholder: 'subtask-placeholder',
+        axis: 'y',
+        opacity: 0.7,
+        cursor: 'move',
+        tolerance: 'pointer',
+        helper: 'clone',
+        forceHelperSize: true,
+        forcePlaceholderSize: true,
         update: function(event, ui) {
             const draggedId = ui.item.data('subtask-id');
             const droppedId = ui.item.next().data('subtask-id');
@@ -154,6 +160,17 @@ function initDragAndDrop(containerId) {
             if (draggedId && droppedId) {
                 reorderSubtasks(draggedId, droppedId);
             }
+        }
+    }).disableSelection();
+
+    // تحسين مظهر مقبض السحب
+    $('.subtask-draggable').each(function() {
+        if (!$(this).find('.drag-handle').length) {
+            $(this).prepend(`
+                <div class="drag-handle me-2" style="cursor: move;">
+                    <i class="fas fa-grip-vertical text-muted"></i>
+                </div>
+            `);
         }
     });
 }

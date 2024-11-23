@@ -538,6 +538,62 @@
         .badge.with-icon i {
             font-size: 0.85em;
         }
+
+        /* تنسيقات الشارات والأزرار */
+        .task-status-badges {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 0.5rem;
+        }
+
+        .task-status-badges .badge {
+            padding: 0.5em 1em;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .task-status-badges .badge:hover {
+            transform: translateY(-2px);
+        }
+
+        .task-date {
+            font-size: 0.8rem;
+            padding: 0.4em 0.8em;
+        }
+
+        .btn-group .btn .badge {
+            margin-left: 0.5rem;
+            font-size: 0.75rem;
+            padding: 0.25em 0.6em;
+            transition: all 0.3s ease;
+        }
+
+        .btn-group .btn:hover .badge {
+            transform: scale(1.1);
+        }
+
+        /* تنسيقات التقارير */
+        .report-card .badge {
+            font-size: 0.85rem;
+            padding: 0.4em 0.8em;
+        }
+
+        .report-footer .badge {
+            font-size: 0.8rem;
+            padding: 0.4em 0.8em;
+            background: rgba(0,0,0,0.05);
+        }
+
+        /* تأثيرات حركية للشارات */
+        .badge {
+            transition: all 0.3s ease;
+        }
+
+        .badge:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
     </style>
 </head>
 <body>
@@ -696,7 +752,7 @@
                         </div>
                     </div>
                     <div id="subtasksList" class="list-group">
-                        <!-- سيتم إضافة المهام الفرعية هن�� -->
+                        <!-- سيتم إضافة المهام الفرعية هن -->
                     </div>
                 </div>
             </div>

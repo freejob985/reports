@@ -184,20 +184,31 @@
         const reportsList = $(`#reports-list-${taskId}`);
         reportsList.empty();
 
-        // إضافة عنوان مع شارة عدد التقارير
+        // تحديث عداد التقارير في بطاقة المهمة
+        $(`#reports-count-${taskId}`).text(reports.length);
+
         reportsList.append(`
             <div class="reports-header mb-3">
-                <h6 class="d-flex align-items-center">
-                    <span>التقارير</span>
-                    <span class="badge bg-primary rounded-pill ms-2">${reports.length}</span>
-                </h6>
+                <div class="d-flex justify-content-between align-items-center">
+                    <h6 class="mb-0 d-flex align-items-center">
+                        <i class="fas fa-file-alt me-2"></i>
+                        التقارير
+                        <span class="badge bg-primary rounded-pill ms-2">${reports.length}</span>
+                    </h6>
+                    <button class="btn btn-sm btn-outline-primary" onclick="showReportModal(${taskId})">
+                        <i class="fas fa-plus"></i>
+                        <span class="badge bg-primary">تقرير جديد</span>
+                    </button>
+                </div>
             </div>
         `);
 
         if (!reports || reports.length === 0) {
             reportsList.append(`
                 <div class="alert alert-info">
-                    <i class="fas fa-info-circle"></i>
+                    <span class="badge bg-info me-2">
+                        <i class="fas fa-info-circle"></i>
+                    </span>
                     لا توجد تقارير
                 </div>
             `);
@@ -210,39 +221,42 @@
 
             const reportElement = $(`
                 <div class="card mb-2 report-card" data-report-id="${report.id}">
-                    <div class="card-header d-flex justify-content-between align-items-center">
-                        <div class="d-flex align-items-center">
-                            <span class="badge bg-info me-2">
-                                <i class="fas fa-clock"></i>
-                                ${timeAgoText}
-                            </span>
-                            <small class="text-muted">${reportDate}</small>
-                        </div>
-                        <div class="btn-group">
-                            <button class="btn btn-sm btn-outline-primary" 
-                                    onclick="editReport(${report.id}, ${taskId})"
-                                    data-bs-toggle="tooltip"
-                                    title="تعديل التقرير">
-                                <i class="fas fa-edit"></i>
-                                <span class="badge bg-primary ms-1">تعديل</span>
-                            </button>
-                            <button class="btn btn-sm btn-outline-danger"
-                                    onclick="deleteReport(${report.id}, ${taskId})"
-                                    data-bs-toggle="tooltip"
-                                    title="حذف التقرير">
-                                <i class="fas fa-trash"></i>
-                                <span class="badge bg-danger ms-1">حذف</span>
-                            </button>
+                    <div class="card-header">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <span class="badge bg-info me-2" data-bs-toggle="tooltip" title="وقت النشر">
+                                    <i class="fas fa-clock me-1"></i>
+                                    ${timeAgoText}
+                                </span>
+                                <span class="badge bg-secondary" data-bs-toggle="tooltip" title="تاريخ النشر">
+                                    <i class="fas fa-calendar-alt me-1"></i>
+                                    ${reportDate}
+                                </span>
+                            </div>
+                            <div class="btn-group">
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        onclick="editReport(${report.id}, ${taskId})"
+                                        data-bs-toggle="tooltip"
+                                        title="تعديل التقرير">
+                                    <i class="fas fa-edit"></i>
+                                    <span class="badge bg-primary">تعديل</span>
+                                </button>
+                                <button class="btn btn-sm btn-outline-danger"
+                                        onclick="deleteReport(${report.id}, ${taskId})"
+                                        data-bs-toggle="tooltip"
+                                        title="حذف التقرير">
+                                    <i class="fas fa-trash"></i>
+                                    <span class="badge bg-danger">حذف</span>
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="card-body">
-                        <div class="report-content">
-                            ${report.html_content}
-                        </div>
+                        ${report.html_content}
                         <div class="report-footer mt-3 pt-2 border-top">
                             <span class="badge bg-light text-dark">
-                                <i class="fas fa-file-alt"></i>
-                                تقرير #${report.id}
+                                <i class="fas fa-hashtag"></i>
+                                تقرير ${report.id}
                             </span>
                         </div>
                     </div>

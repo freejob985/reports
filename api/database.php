@@ -43,15 +43,27 @@ class Database {
     }
     
     private function createTables() {
-        // جدول المهام الرئيسية
+        // جدول المشاريع
+        $this->db->exec('
+            CREATE TABLE projects (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                name TEXT NOT NULL,
+                description TEXT,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+            )
+        ');
+        
+        // تعديل جدول المهام لإضافة علاقة مع المشاريع
         $this->db->exec('
             CREATE TABLE tasks (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+                project_id INTEGER,
                 title TEXT NOT NULL,
                 description TEXT,
                 status TEXT DEFAULT "pending",
                 progress INTEGER DEFAULT 0,
-                created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE
             )
         ');
         

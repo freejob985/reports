@@ -3,6 +3,10 @@ let tasks = [];
 let subtasks = [];
 let reports = [];
 
+// إضافة متغيرات للتحكم في حالة العرض
+let showSubtasks = true;
+let showReports = true;
+
 // تهيئة إعدادات toastr
 toastr.options = {
     "closeButton": true,
@@ -29,9 +33,14 @@ $(document).ready(function() {
 });
 
 // دلة تحميل المهام من قاعدة البيانات
-function loadTasks() {
+function loadTasks(projectId = null) {
+    let url = 'api/tasks.php';
+    if (projectId) {
+        url += `?project_id=${projectId}`;
+    }
+
     $.ajax({
-        url: 'api/tasks.php',
+        url: url,
         method: 'GET',
         success: function(response) {
             tasks = response.tasks || [];
@@ -57,36 +66,68 @@ function editTask(taskId) {
         return;
     }
 
-    // تعبئة نموذج التحرير بالبيانات الحالية
-    $('#taskId').val(task.id);
-    $('#taskTitle').val(task.title);
-    $('#taskDescription').val(task.description);
-    $('#taskStatus').val(task.status);
+    // جلب قائمة المشاريع
+    $.ajax({
+                url: 'api/projects.php',
+                method: 'GET',
+                success: function(response) {
+                        if (response.success) {
+                            const projects = response.projects;
 
-    // تحديث عنوان النموذج
-    $('.modal-title').text('تعديل المهمة');
+                            // تعبئة نموذج التحرير بالبيانات الحالية
+                            $('#taskId').val(task.id);
+                            $('#taskTitle').val(task.title);
+                            $('#taskDescription').val(task.description);
+                            $('#taskStatus').val(task.status);
 
-    // إنشاء أزرار تغيير الحالة السريع لجميع الحالات المتاحة
-    const quickStatusButtons = `
-        <div class="mb-3">
-            <label class="form-label">تغيير سريع للحالة:</label>
-            <div class="btn-group-vertical w-100">
-                ${Object.entries(taskStatuses).map(([status, info]) => `
-                    <button type="button" 
-                            class="btn btn-outline-${info.class.replace('bg-', '')} mb-1" 
-                            onclick="quickUpdateStatus(${taskId}, '${status}')">
-                        <i class="fas fa-${info.icon}"></i> ${info.text}
-                    </button>
-                `).join('')}
-            </div>
-        </div>
-    `;
+                            // إضافة قائمة المشاريع
+                            const projectSelect = `
+                    <div class="mb-3">
+                        <label class="form-label">المشروع</label>
+                        <select class="form-select" id="taskProject">
+                            ${projects.map(project => `
+                                <option value="${project.id}" ${project.id === task.project_id ? 'selected' : ''}>
+                                    ${escapeHtml(project.name)}
+                                </option>
+                            `).join('')}
+                        </select>
+                    </div>
+                `;
 
-    // إضافة الأزرار إلى النموذج
-    $('#taskForm').prepend(quickStatusButtons);
+                // إضافة قائمة المشاريع قبل حقل العنوان
+                $('#taskTitle').parent().before(projectSelect);
 
-    // عرض النموذج
-    $('#taskModal').modal('show');
+                // تحديث عنوان النموذج
+                $('.modal-title').text('تعديل المهمة');
+
+                // إنشاء أزرار تغيير الحالة السريع
+                const quickStatusButtons = `
+                    <div class="mb-3">
+                        <label class="form-label">تغيير سريع للحالة:</label>
+                        <div class="btn-group-vertical w-100">
+                            ${Object.entries(taskStatuses).map(([status, info]) => `
+                                <button type="button" 
+                                        class="btn btn-outline-${info.class.replace('bg-', '')} mb-1" 
+                                        onclick="quickUpdateStatus(${taskId}, '${status}')">
+                                    <i class="fas fa-${info.icon}"></i> ${info.text}
+                                </button>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+
+                // إضافة الأزرار إلى النموذج
+                $('#taskForm').prepend(quickStatusButtons);
+
+                // عرض النموذج
+                $('#taskModal').modal('show');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading projects:', error);
+            toastr.error('حدث خطأ أثناء تحميل المشاريع');
+        }
+    });
 }
 
 /**
@@ -170,24 +211,13 @@ function deleteTask(taskId) {
     });
 }
 
-// دالة عرض نموذج إضافة مهمة جديدة
-function showAddTaskModal() {
-    // إعادة تعيين النموذج
-    $('#taskForm')[0].reset();
-    $('#taskId').val('');
-    $('#taskStatus').val('pending');
-
-    // تحديث عنوان النموذج
-    $('.modal-title').text('إضافة مهمة جديدة');
-
-    // عرض النموذج
-    $('#taskModal').modal('show');
-}
-
-// دالة حفظ المهمة
+/**
+ * حفظ المهمة
+ */
 function saveTask() {
     const taskData = {
         id: $('#taskId').val(),
+        project_id: $('#taskProject').val(),
         title: $('#taskTitle').val().trim(),
         description: $('#taskDescription').val().trim(),
         status: $('#taskStatus').val()
@@ -195,6 +225,11 @@ function saveTask() {
 
     if (!taskData.title) {
         toastr.error('يرجى إدخال عنوان المهمة');
+        return;
+    }
+
+    if (!taskData.project_id) {
+        toastr.error('يرجى اختيار مشروع');
         return;
     }
 
@@ -209,8 +244,19 @@ function saveTask() {
         success: function(response) {
             if (response.success) {
                 $('#taskModal').modal('hide');
-                loadTasks();
-                toastr.success(taskData.id ? 'تم تحديث المهمة بنجاح' : 'تم إضافة المهمة بنجاح');
+                
+                // إذا تم نقل المهمة لمشروع آخر
+                if (taskData.id && taskData.project_id !== currentProjectId) {
+                    toastr.success('تم نقل المهمة إلى المشروع الجديد بنجاح');
+                    // تحديث عرض المهام للمشروع الحالي
+                    loadTasks(currentProjectId);
+                } else {
+                    toastr.success(taskData.id ? 'تم تحديث المهمة بنجاح' : 'تم إضافة المهمة بنجاح');
+                    loadTasks(taskData.project_id);
+                }
+                
+                // تحديث إحصائيات المشاريع
+                loadProjects();
             } else {
                 toastr.error(response.message || 'حدث خطأ أثناء حفظ المهمة');
             }
@@ -218,6 +264,51 @@ function saveTask() {
         error: function(xhr, status, error) {
             console.error('Error saving task:', error);
             toastr.error('حدث خطأ أثناء حفظ المهمة');
+        }
+    });
+}
+
+/**
+ * عرض نموذج إضافة مهمة جديدة
+ */
+function showAddTaskModal() {
+    // إعادة تعيين النموذج
+    $('#taskForm')[0].reset();
+    $('#taskId').val('');
+    $('#taskStatus').val('pending');
+
+    // جلب قائمة المشاريع
+    $.ajax({
+        url: 'api/projects.php',
+        method: 'GET',
+        success: function(response) {
+            if (response.success) {
+                const projects = response.projects;
+                
+                // إضافة قائمة المشاريع
+                const projectSelect = `
+                    <div class="mb-3">
+                        <label class="form-label">المشروع</label>
+                        <select class="form-select" id="taskProject" required>
+                            <option value="">اختر المشروع</option>
+                            ${projects.map(project => `
+                                <option value="${project.id}" ${project.id === currentProjectId ? 'selected' : ''}>
+                                    ${escapeHtml(project.name)}
+                                </option>
+                            `).join('')}
+                        </select>
+                    </div>
+                `;
+
+                // إضافة قائمة المشاريع قبل حقل العنوان
+                $('#taskTitle').parent().before(projectSelect);
+
+                // تحديث عنوان النموذج
+                $('.modal-title').text('إضافة مهمة جديدة');
+
+                // عرض النموذج
+                $('#taskModal').modal('show');
+            }
         }
     });
 }
@@ -249,7 +340,7 @@ function getStatusIcon(status) {
     return taskStatuses[status] && taskStatuses[status].icon ? taskStatuses[status].icon : 'question-circle';
 }
 
-// تحديث دالة renderTasks لتحسين تنسيق عنوان المهمة
+// تحديث دالة renderTasks لدعم إخفاء/إظهار الأقسام
 function renderTasks() {
     const tasksList = $('#tasks-list');
     tasksList.empty();
@@ -258,6 +349,25 @@ function renderTasks() {
         tasksList.append('<div class="alert alert-info">لا توجد مهام حالياً</div>');
         return;
     }
+
+    // إضافة أزرار التحكم في العرض
+    const viewControls = $(`
+        <div class="view-controls mb-4">
+            <div class="btn-group">
+                <button class="btn ${showSubtasks ? 'btn-primary' : 'btn-outline-primary'}" 
+                        onclick="toggleSubtasks()">
+                    <i class="fas ${showSubtasks ? 'fa-eye-slash' : 'fa-eye'}"></i>
+                    المهام الفرعية
+                </button>
+                <button class="btn ${showReports ? 'btn-primary' : 'btn-outline-primary'}" 
+                        onclick="toggleReports()">
+                    <i class="fas ${showReports ? 'fa-eye-slash' : 'fa-eye'}"></i>
+                    التقارير
+                </button>
+            </div>
+        </div>
+    `);
+    tasksList.append(viewControls);
 
     tasks.forEach(task => {
         const statusBadgeClass = getStatusBadgeClass(task.status);
@@ -273,7 +383,6 @@ function renderTasks() {
             </span>
         `;
 
-        // تحديث تنسيق أنوان المهمة باستخدام Badge
         const taskElement = $(`
             <div class="card mb-4 task-card" data-task-id="${task.id}">
                 <div class="card-header">
@@ -314,47 +423,68 @@ function renderTasks() {
                     </div>
                 </div>
                 <div class="card-body">
-                    <!-- باقي محتوى الكارد بدون تغيير -->
                     <p class="card-text">${escapeHtml(task.description || '')}</p>
 
                     <!-- المهام الفرعية -->
-                    <div class="subtasks-section mb-3">
-                        <h6 class="mb-3">المهام الفرعية</h6>
-                        <div class="input-group mb-3">
-                            <input type="text" 
-                                   class="form-control subtask-input" 
-                                   data-task-id="${task.id}"
-                                   placeholder="أضف مهمة فرعية جديدة"
-                                   onkeypress="handleSubtaskKeyPress(event, ${task.id})"
-                                   autocomplete="off">
-                            <button class="btn btn-outline-primary" onclick="addSubtask(${task.id})">
-                                <i class="fas fa-plus"></i>
+                    <div class="subtasks-section mb-3" style="display: ${showSubtasks ? 'block' : 'none'}">
+                        <h6 class="mb-3">
+                            المهام الفرعية
+                            <button class="btn btn-sm btn-outline-primary float-end" 
+                                    onclick="toggleSubtasksSection(${task.id})">
+                                <i class="fas fa-chevron-up"></i>
                             </button>
-                        </div>
-                        <div id="subtasks-list-${task.id}" class="list-group">
-                            <!-- سيتم تحميل المهام الفرعية هنا -->
+                        </h6>
+                        <div class="subtasks-content" id="subtasks-content-${task.id}">
+                            <div class="input-group mb-3">
+                                <input type="text" 
+                                       class="form-control subtask-input" 
+                                       data-task-id="${task.id}"
+                                       placeholder="أضف مهمة فرعية جديدة"
+                                       onkeypress="handleSubtaskKeyPress(event, ${task.id})"
+                                       autocomplete="off">
+                                <button class="btn btn-outline-primary" onclick="addSubtask(${task.id})">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                            </div>
+                            <div id="subtasks-list-${task.id}" class="list-group">
+                                <!-- سيتم تحميل المهام الفرعية هنا -->
+                            </div>
                         </div>
                     </div>
 
                     <!-- قسم التقارير -->
-                    <div class="reports-section mb-3">
-                        <h6 class="mb-3">التقارير</h6>
-                        <div id="reports-list-${task.id}">
-                            <!-- سيتم تحميل التقارير هنا -->
+                    <div class="reports-section mb-3" style="display: ${showReports ? 'block' : 'none'}">
+                        <h6 class="mb-3">
+                            التقارير
+                            <button class="btn btn-sm btn-outline-primary float-end" 
+                                    onclick="toggleReportsSection(${task.id})">
+                                <i class="fas fa-chevron-up"></i>
+                            </button>
+                        </h6>
+                        <div class="reports-content" id="reports-content-${task.id}">
+                            <div id="reports-list-${task.id}">
+                                <!-- سيتم تحميل التقارير هنا -->
+                            </div>
                         </div>
                     </div>
 
                     <!-- شريط التقدم -->
                     <div class="progress">
-                        <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
+                        <div class="progress-bar" role="progressbar" style="width: 0%" 
+                             aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
                     </div>
                 </div>
             </div>
         `);
 
         tasksList.append(taskElement);
-        loadTaskSubtasks(task.id);
-        loadTaskReports(task.id);
+        
+        if (showSubtasks) {
+            loadTaskSubtasks(task.id);
+        }
+        if (showReports) {
+            loadTaskReports(task.id);
+        }
     });
 }
 
@@ -384,7 +514,7 @@ function updateOverallProgress() {
             progressBar.text(Math.round(now) + '%');
         },
         complete: function() {
-            // تحديث اللون بناءً على النسبة
+            // تحديث اللون بناءً عل النسبة
             if (progress >= 75) {
                 progressBar.removeClass().addClass('progress-bar bg-success');
             } else if (progress >= 50) {
@@ -541,3 +671,111 @@ $('<style>')
         }
     `)
     .appendTo('head');
+
+/**
+ * تحديث الإحصائيات العامة
+ */
+function updateStats() {
+    // جلب إحصائيات جميع المشاريع
+    $.ajax({
+        url: 'api/tasks.php?stats=all',
+        method: 'GET',
+        success: function(response) {
+            if (response.success) {
+                const stats = response.stats;
+                
+                // تحديث الإحصائيات في الهيدر
+                $('#total-tasks').text(stats.total || 0);
+                $('#completed-tasks').text(stats.completed || 0);
+                $('#pending-tasks').text(stats.pending || 0);
+
+                // تحديث الإحصائيات في الفوتر
+                $('#footer-total').text(stats.total || 0);
+                $('#footer-completed').text(stats.completed || 0);
+                $('#footer-progress').text(stats.in_progress || 0);
+
+                // تحديث شريط التقدم الإجمالي
+                const progress = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
+                const progressBar = $('#overall-progress');
+                
+                progressBar.css('width', `${progress}%`).text(`${progress}%`);
+                
+                // تحديث لون شريط التقدم
+                progressBar.removeClass('bg-danger bg-warning bg-info bg-success');
+                if (progress >= 75) {
+                    progressBar.addClass('bg-success');
+                } else if (progress >= 50) {
+                    progressBar.addClass('bg-info');
+                } else if (progress >= 25) {
+                    progressBar.addClass('bg-warning');
+                } else {
+                    progressBar.addClass('bg-danger');
+                }
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error updating stats:', error);
+        }
+    });
+}
+
+/**
+ * تبديل حالة عرض المهام الفرعية
+ */
+function toggleSubtasks() {
+    showSubtasks = !showSubtasks;
+    localStorage.setItem('showSubtasks', showSubtasks);
+    renderTasks();
+}
+
+/**
+ * تبديل حالة عرض التقارير
+ */
+function toggleReports() {
+    showReports = !showReports;
+    localStorage.setItem('showReports', showReports);
+    renderTasks();
+}
+
+/**
+ * تبديل حالة عرض قسم المهام الفرعية لمهمة محددة
+ * @param {number} taskId - معرف المهمة
+ */
+function toggleSubtasksSection(taskId) {
+    const content = $(`#subtasks-content-${taskId}`);
+    const button = content.prev().find('button i');
+    
+    if (content.is(':visible')) {
+        content.slideUp();
+        button.removeClass('fa-chevron-up').addClass('fa-chevron-down');
+    } else {
+        content.slideDown();
+        button.removeClass('fa-chevron-down').addClass('fa-chevron-up');
+        loadTaskSubtasks(taskId);
+    }
+}
+
+/**
+ * تبديل حالة عرض قسم التقارير لمهمة محددة
+ * @param {number} taskId - معرف المهمة
+ */
+function toggleReportsSection(taskId) {
+    const content = $(`#reports-content-${taskId}`);
+    const button = content.prev().find('button i');
+    
+    if (content.is(':visible')) {
+        content.slideUp();
+        button.removeClass('fa-chevron-up').addClass('fa-chevron-down');
+    } else {
+        content.slideDown();
+        button.removeClass('fa-chevron-down').addClass('fa-chevron-up');
+        loadTaskReports(taskId);
+    }
+}
+
+// استرجاع حالة العرض عند تحميل الصفحة
+$(document).ready(function() {
+    showSubtasks = localStorage.getItem('showSubtasks') !== 'false';
+    showReports = localStorage.getItem('showReports') !== 'false';
+    loadTasks();
+});

@@ -766,6 +766,104 @@
                 margin: 0;
             }
         }
+
+        .projects-section {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .danger-zone {
+            background: #fff3f3;
+            border: 1px solid #ffcdd2;
+            border-radius: 10px;
+            padding: 20px;
+            text-align: center;
+        }
+
+        .project-card {
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .project-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+        
+        .project-card.active {
+            border-color: #0d6efd;
+            background-color: #f8f9fa;
+        }
+        
+        .project-actions {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+        
+        .project-card:hover .project-actions {
+            opacity: 1;
+        }
+
+        .projects-navigation {
+            background: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .projects-tabs {
+            overflow-x: auto;
+            padding: 10px 0;
+        }
+
+        .projects-tabs .nav-pills {
+            display: flex;
+            gap: 10px;
+            flex-wrap: nowrap;
+            min-width: 100%;
+        }
+
+        .project-tab {
+            background: #f8f9fa;
+            border-radius: 50px;
+            padding: 8px 16px;
+            white-space: nowrap;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .project-tab.active {
+            background: #0d6efd;
+            color: white;
+        }
+
+        .project-tab:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .current-project {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 15px;
+            margin-top: 20px;
+        }
+
+        .project-stats {
+            display: flex;
+            gap: 20px;
+            margin-top: 10px;
+        }
+
+        .project-stat-item {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
     </style>
 </head>
 <body>
@@ -802,6 +900,63 @@
         </div>
     </header>
 
+    <!-- إضافة قسم المشاريع بعد الهيدر مباشرة -->
+    <div class="container">
+        <div class="projects-navigation mb-4">
+            <div class="d-flex justify-content-between align-items-center">
+                <h4>
+                    <i class="fas fa-folder-open"></i>
+                    المشاريع
+                    <span class="badge bg-primary rounded-pill" id="projects-count">0</span>
+                </h4>
+                <button class="btn btn-primary" onclick="showAddProjectModal()">
+                    <i class="fas fa-plus"></i> مشروع جديد
+                </button>
+            </div>
+            
+            <!-- شريط التنقل بين المشاريع -->
+            <div class="projects-tabs mt-3">
+                <div class="nav nav-pills" id="projects-nav">
+                    <!-- سيتم إضافة المشاريع هنا -->
+                </div>
+            </div>
+
+            <!-- المشروع الحالي -->
+            <div class="current-project mt-3" id="current-project-info">
+                <!-- معلومات المشروع الحالي -->
+            </div>
+        </div>
+    </div>
+
+    <!-- إضافة نموذج المشروع -->
+    <div class="modal fade" id="projectModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">إضافة مشروع جديد</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <form id="projectForm">
+                        <input type="hidden" id="projectId">
+                        <div class="mb-3">
+                            <label class="form-label">اسم المشروع</label>
+                            <input type="text" class="form-control" id="projectName" required>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label">الوصف</label>
+                            <textarea class="form-control" id="projectDescription" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">إغلاق</button>
+                    <button type="button" class="btn btn-primary" onclick="saveProject()">حفظ</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- المحتوى الرئيسي -->
     <main class="container">
         <!-- إجمالي تقدم المهام -->
@@ -823,7 +978,7 @@
 
         <!-- قائمة المهام -->
         <div id="tasks-list">
-            <!-- سيتم إضافة المهام هنا ديناميكياً -->
+            <!-- سيتم إافة المهام هنا ديناميكياً -->
         </div>
     </main>
 
@@ -962,5 +1117,6 @@
     <script src="assets/js/main.js"></script>
     <script src="assets/js/subtasks.js"></script>
     <script src="assets/js/reports.js"></script>
+    <script src="assets/js/projects.js"></script>
 </body>
 </html> 

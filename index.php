@@ -410,6 +410,73 @@
         html {
             scroll-behavior: smooth;
         }
+
+        /* تنسيقات الشارات في الهيدر */
+        .header-stats .badge {
+            font-size: 1.2rem;
+            padding: 0.5rem 1rem;
+            margin: 0.25rem;
+            transition: all 0.3s ease;
+        }
+
+        .header-stats .badge:hover {
+            transform: scale(1.1);
+        }
+
+        .header-stats small.badge {
+            font-size: 0.8rem;
+            padding: 0.25rem 0.5rem;
+        }
+
+        /* تنسيقات الشارات في الفوتر */
+        .footer-stats .badge {
+            font-size: 1rem;
+            padding: 0.4rem 0.8rem;
+            margin-right: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .footer-stats .badge:hover {
+            transform: translateY(-2px);
+        }
+
+        /* تنسيقات عامة للشارات */
+        .badge {
+            border-radius: 50px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .badge.bg-primary {
+            background: var(--primary-gradient) !important;
+        }
+
+        .badge.bg-success {
+            background: var(--success-gradient) !important;
+        }
+
+        .badge.bg-warning {
+            background: var(--secondary-gradient) !important;
+            color: white;
+        }
+
+        .badge.bg-info {
+            background: linear-gradient(135deg, #03a9f4 0%, #00bcd4 100%) !important;
+        }
+
+        /* تحسين مظهر القوائم في الفوتر */
+        .footer-stats li {
+            background: rgba(255,255,255,0.1);
+            padding: 0.5rem 1rem;
+            border-radius: 10px;
+            margin-bottom: 0.5rem;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s ease;
+        }
+
+        .footer-stats li:hover {
+            background: rgba(255,255,255,0.2);
+            transform: translateX(-5px);
+        }
     </style>
 </head>
 <body>
@@ -426,18 +493,18 @@
                         <div class="header-stats">
                             <div class="stat-item">
                                 <i class="fas fa-list"></i>
-                                <span id="total-tasks">0</span>
-                                <small>المهام الكلية</small>
+                                <span id="total-tasks" class="badge bg-primary rounded-pill">0</span>
+                                <small class="badge bg-light text-dark">المهام الكلية</small>
                             </div>
                             <div class="stat-item">
                                 <i class="fas fa-check-circle"></i>
-                                <span id="completed-tasks">0</span>
-                                <small>المهام المكتملة</small>
+                                <span id="completed-tasks" class="badge bg-success rounded-pill">0</span>
+                                <small class="badge bg-light text-dark">المهام المكتملة</small>
                             </div>
                             <div class="stat-item">
                                 <i class="fas fa-clock"></i>
-                                <span id="pending-tasks">0</span>
-                                <small>قيد الانتظار</small>
+                                <span id="pending-tasks" class="badge bg-warning rounded-pill">0</span>
+                                <small class="badge bg-light text-dark">قيد الانتظار</small>
                             </div>
                         </div>
                     </div>
@@ -478,9 +545,18 @@
                 <div class="col-md-4">
                     <h5><i class="fas fa-chart-line"></i> إحصائيات سريعة</h5>
                     <ul class="footer-stats">
-                        <li><i class="fas fa-tasks"></i> إجمالي المهام: <span id="footer-total">0</span></li>
-                        <li><i class="fas fa-check"></i> المكتملة: <span id="footer-completed">0</span></li>
-                        <li><i class="fas fa-spinner"></i> قيد التنفيذ: <span id="footer-progress">0</span></li>
+                        <li>
+                            <i class="fas fa-tasks"></i> 
+                            إجمالي المهام: <span id="footer-total" class="badge bg-primary">0</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-check"></i> 
+                            المكتملة: <span id="footer-completed" class="badge bg-success">0</span>
+                        </li>
+                        <li>
+                            <i class="fas fa-spinner"></i> 
+                            قيد التنفيذ: <span id="footer-progress" class="badge bg-info">0</span>
+                        </li>
                     </ul>
                 </div>
                 <div class="col-md-4 text-center">

@@ -201,3 +201,59 @@ function reorderSubtasks(draggedId, droppedId) {
         }
     });
 }
+
+/**
+ * تحرير مهمة فرعية
+ * @param {number} subtaskId - معرف المهمة الفرعية
+ * @param {number} taskId - معرف المهمة الرئيسية
+ */
+function editSubtask(subtaskId, taskId) {
+    // البحث عن المهمة الفرعية في DOM
+    const subtaskElement = $(`.subtask-draggable[data-subtask-id="${subtaskId}"]`);
+    const currentTitle = subtaskElement.find('.form-check-label').text().trim();
+
+    // عرض مربع حوار للتحرير باستخدام SweetAlert2
+    Swal.fire({
+        title: 'تحرير المهمة الفرعية',
+        input: 'text',
+        inputValue: currentTitle,
+        inputLabel: 'عنوان المهمة الفرعية',
+        showCancelButton: true,
+        confirmButtonText: 'حفظ',
+        cancelButtonText: 'إلغاء',
+        inputValidator: (value) => {
+            if (!value.trim()) {
+                return 'يرجى إدخال عنوان المهمة الفرعية';
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            const newTitle = result.value.trim();
+
+            // تحديث المهمة الفرعية في قاعدة البيانات
+            $.ajax({
+                url: 'api/subtasks.php',
+                method: 'PUT',
+                contentType: 'application/json',
+                data: JSON.stringify({
+                    id: subtaskId,
+                    title: newTitle,
+                    action: 'update_title'
+                }),
+                success: function(response) {
+                    if (response.success) {
+                        // تحديث العنوان في واجهة المستخدم
+                        subtaskElement.find('.form-check-label').text(newTitle);
+                        toastr.success('تم تحديث المهمة الفرعية بنجاح');
+                    } else {
+                        toastr.error(response.message || 'حدث خطأ أثناء تحديث المهمة الفرعية');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error updating subtask:', error);
+                    toastr.error('حدث خطأ أثناء تحديث المهمة الفرعية');
+                }
+            });
+        }
+    });
+}

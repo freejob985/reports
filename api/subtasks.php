@@ -86,59 +86,82 @@ try {
         case 'PUT':
             $input = json_decode(file_get_contents('php://input'), true);
             
-            if (isset($input['action']) && $input['action'] === 'reorder') {
-                if (!isset($input['dragged_id']) || !isset($input['dropped_id'])) {
-                    throw new Exception('معرفات المهام مطلوبة لإعادة الترتيب');
+            if (isset($input['action'])) {
+                switch ($input['action']) {
+                    case 'reorder':
+                        if (!isset($input['dragged_id']) || !isset($input['dropped_id'])) {
+                            throw new Exception('معرفات المهام مطلوبة لإعادة الترتيب');
+                        }
+
+                        // نقوم بتحديث الترتيب في قاعدة البيانات
+                        $db->query('
+                            BEGIN TRANSACTION;
+                            
+                            -- حفظ الترتيب الحالي للعنصر المسحوب
+                            UPDATE subtasks 
+                            SET sort_order = (
+                                SELECT sort_order 
+                                FROM subtasks 
+                                WHERE id = :dropped_id
+                            )
+                            WHERE id = :dragged_id;
+                            
+                            COMMIT;
+                        ', [
+                            ':dragged_id' => $input['dragged_id'],
+                            ':dropped_id' => $input['dropped_id']
+                        ]);
+
+                        echo json_encode([
+                            'success' => true,
+                            'message' => 'تم إعادة ترتيب المهام الفرعية بنجاح'
+                        ]);
+                        break;
+                        
+                    case 'update_title':
+                        if (!isset($input['id']) || !isset($input['title'])) {
+                            throw new Exception('معرف المهمة الفرعية وعنوانها مطلوبان');
+                        }
+
+                        $result = $db->query('
+                            UPDATE subtasks 
+                            SET title = :title
+                            WHERE id = :id
+                        ', [
+                            ':id' => $input['id'],
+                            ':title' => trim($input['title'])
+                        ]);
+
+                        echo json_encode([
+                            'success' => true,
+                            'message' => 'تم تحديث عنوان المهمة الفرعية بنجاح'
+                        ]);
+                        break;
+                }
+            } else {
+                if (!isset($input['id']) || !isset($input['completed'])) {
+                    throw new Exception('البيانات المطلوبة غير مكتملة');
                 }
 
-                // نقوم بتحديث الترتيب في قاعدة البيانات
-                $db->query('
-                    BEGIN TRANSACTION;
-                    
-                    -- حفظ الترتيب الحالي للعنصر المسحوب
+                $result = $db->query('
                     UPDATE subtasks 
-                    SET sort_order = (
-                        SELECT sort_order 
-                        FROM subtasks 
-                        WHERE id = :dropped_id
-                    )
-                    WHERE id = :dragged_id;
-                    
-                    COMMIT;
+                    SET completed = :completed
+                    WHERE id = :id
                 ', [
-                    ':dragged_id' => $input['dragged_id'],
-                    ':dropped_id' => $input['dropped_id']
+                    ':id' => $input['id'],
+                    ':completed' => $input['completed'] ? 1 : 0
+                ]);
+
+                $logger->info('تم تحديث حالة المهمة الفرعية', [
+                    'id' => $input['id'],
+                    'completed' => $input['completed']
                 ]);
 
                 echo json_encode([
                     'success' => true,
-                    'message' => 'تم إعادة ترتيب المهام الفرعية بنجاح'
+                    'message' => 'تم تحديث المهمة الفرعية بنجاح'
                 ]);
-                break;
             }
-
-            if (!isset($input['id']) || !isset($input['completed'])) {
-                throw new Exception('البيانات المطلوبة غير مكتملة');
-            }
-
-            $result = $db->query('
-                UPDATE subtasks 
-                SET completed = :completed
-                WHERE id = :id
-            ', [
-                ':id' => $input['id'],
-                ':completed' => $input['completed'] ? 1 : 0
-            ]);
-
-            $logger->info('تم تحديث حالة المهمة الفرعية', [
-                'id' => $input['id'],
-                'completed' => $input['completed']
-            ]);
-
-            echo json_encode([
-                'success' => true,
-                'message' => 'تم تحديث المهمة الفرعية بنجاح'
-            ]);
             break;
 
         case 'DELETE':

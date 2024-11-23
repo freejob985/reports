@@ -398,19 +398,30 @@ function renderTaskSubtasks(taskId, subtasks) {
 
     subtasks.forEach((subtask, index) => {
         const element = $(`
-            <div class="list-group-item subtask-draggable d-flex justify-content-between align-items-center ${subtask.completed ? 'completed-subtask' : ''}"
+            <div class="list-group-item subtask-draggable d-flex align-items-center ${subtask.completed ? 'completed-subtask' : ''}"
                  data-subtask-id="${subtask.id}">
-                <div class="form-check">
+                <div class="drag-handle me-2">
+                    <i class="fas fa-grip-vertical text-muted"></i>
+                </div>
+                <div class="form-check flex-grow-1">
                     <input class="form-check-input" type="checkbox" 
                            ${subtask.completed ? 'checked' : ''}
                            onchange="toggleSubtask(${subtask.id}, this.checked, ${taskId})">
-                    <label class="form-check-label">${escapeHtml(subtask.title)}</label>
+                    <label class="form-check-label subtask-title" 
+                           onclick="toggleSubtaskSelection(${subtask.id})"
+                           style="cursor: pointer;">
+                        ${escapeHtml(subtask.title)}
+                    </label>
                 </div>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteSubtask(${subtask.id}, ${taskId})">
-                    <i class="fas fa-times"></i>
-                </button>
+                <div class="btn-group ms-2">
+                    <button class="btn btn-sm btn-outline-primary" onclick="editSubtask(${subtask.id}, ${taskId})">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteSubtask(${subtask.id}, ${taskId})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
             </div>
-            <div class="subtask-drop-zone"></div>
         `);
         subtasksList.append(element);
     });
@@ -751,4 +762,10 @@ function updateTaskStatus(taskId, status) {
             toastr.error('حدث خطأ أثناء تحديث حالة المهمة');
         }
     });
+}
+
+// إضافة دالة تبديل تحديد المهمة الفرعية
+function toggleSubtaskSelection(subtaskId) {
+    const label = $(`.subtask-title[onclick*="${subtaskId}"]`);
+    label.toggleClass('selected-subtask');
 }

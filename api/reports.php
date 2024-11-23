@@ -17,6 +17,28 @@ try {
 
     switch ($method) {
         case 'GET':
+            // إذا تم تحديد معرف تقرير محدد
+            if (isset($_GET['id'])) {
+                $result = $db->query('
+                    SELECT * FROM reports 
+                    WHERE id = :id
+                ', [':id' => $_GET['id']]);
+
+                $report = $result->fetchArray(SQLITE3_ASSOC);
+                
+                if (!$report) {
+                    throw new Exception('التقرير غير موجود');
+                }
+
+                $logger->info('تم جلب التقرير', ['id' => $_GET['id']]);
+                echo json_encode([
+                    'success' => true,
+                    'report' => $report
+                ]);
+                break;
+            }
+
+            // إذا تم تحديد معرف المهمة
             if (!isset($_GET['task_id'])) {
                 throw new Exception('معرف المهمة الرئيسية مطلوب');
             }
@@ -48,8 +70,8 @@ try {
             }
 
             $result = $db->query('
-                INSERT INTO reports (task_id, content, html_content)
-                VALUES (:task_id, :content, :html_content)
+                INSERT INTO reports (task_id, content, html_content, created_at)
+                VALUES (:task_id, :content, :html_content, datetime("now", "localtime"))
             ', [
                 ':task_id' => $input['task_id'],
                 ':content' => $input['content'],
@@ -69,23 +91,6 @@ try {
             ]);
             break;
 
-        case 'DELETE':
-            if (!isset($_GET['id'])) {
-                throw new Exception('معرف التقرير مطلوب');
-            }
-
-            $result = $db->query('
-                DELETE FROM reports WHERE id = :id
-            ', [':id' => $_GET['id']]);
-
-            $logger->info('تم حذف التقرير', ['id' => $_GET['id']]);
-
-            echo json_encode([
-                'success' => true,
-                'message' => 'تم حذف التقرير بنجاح'
-            ]);
-            break;
-
         case 'PUT':
             $input = json_decode(file_get_contents('php://input'), true);
             
@@ -101,7 +106,7 @@ try {
                 UPDATE reports 
                 SET content = :content,
                     html_content = :html_content,
-                    updated_at = CURRENT_TIMESTAMP
+                    created_at = datetime("now", "localtime")
                 WHERE id = :id
             ', [
                 ':id' => $_GET['id'],
@@ -112,6 +117,23 @@ try {
             echo json_encode([
                 'success' => true,
                 'message' => 'تم تحديث التقرير بنجاح'
+            ]);
+            break;
+
+        case 'DELETE':
+            if (!isset($_GET['id'])) {
+                throw new Exception('معرف التقرير مطلوب');
+            }
+
+            $result = $db->query('
+                DELETE FROM reports WHERE id = :id
+            ', [':id' => $_GET['id']]);
+
+            $logger->info('تم حذف التقرير', ['id' => $_GET['id']]);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'تم حذف التقرير بنجاح'
             ]);
             break;
 

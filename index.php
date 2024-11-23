@@ -221,25 +221,98 @@
 
         /* تصميم المهام الفرعية القابلة للسحب */
         .subtask-draggable {
+            background: white;
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 8px;
+            margin-bottom: 0.5rem;
+            padding: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .subtask-draggable:hover {
+            background: #f8f9fa;
+            transform: translateX(-5px);
+            box-shadow: 2px 2px 5px rgba(0,0,0,0.1);
+        }
+
+        .subtask-draggable .drag-handle {
+            color: #adb5bd;
             cursor: move;
-            user-select: none;
-            transition: background-color 0.3s ease;
+            padding: 0.25rem;
+            border-radius: 4px;
+            transition: all 0.3s ease;
         }
 
-        .subtask-draggable.dragging {
-            opacity: 0.5;
-            background-color: #f8f9fa;
+        .subtask-draggable .drag-handle:hover {
+            background: #e9ecef;
+            color: #6c757d;
         }
 
-        .subtask-drop-zone {
-            border: 2px dashed #ccc;
-            margin: 5px 0;
-            min-height: 40px;
-            display: none;
+        .subtask-draggable .form-check-label {
+            font-size: 1rem;
+            color: #495057;
+            transition: all 0.3s ease;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
         }
 
-        .subtask-drop-zone.active {
-            display: block;
+        .subtask-draggable .form-check-input {
+            cursor: pointer;
+            width: 1.2rem;
+            height: 1.2rem;
+        }
+
+        .completed-subtask {
+            background: #f8f9fa;
+            opacity: 0.8;
+        }
+
+        .completed-subtask .form-check-label {
+            text-decoration: line-through;
+            color: #6c757d;
+        }
+
+        .selected-subtask {
+            background: #e3f2fd;
+            color: #1976d2 !important;
+            font-weight: 500;
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+        }
+
+        .subtask-draggable .btn-group {
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .subtask-draggable:hover .btn-group {
+            opacity: 1;
+        }
+
+        .subtask-draggable .btn {
+            padding: 0.25rem 0.5rem;
+            font-size: 0.875rem;
+        }
+
+        .subtask-placeholder {
+            border: 2px dashed #dee2e6;
+            background: #f8f9fa;
+            border-radius: 8px;
+            margin: 0.5rem 0;
+            height: 3rem;
+        }
+
+        /* تحسين مظهر حقل إدخال المهام الفرعية */
+        .subtask-input {
+            border-radius: 8px;
+            padding: 0.75rem;
+            border: 1px solid #ced4da;
+            transition: all 0.3s ease;
+        }
+
+        .subtask-input:focus {
+            border-color: #2196F3;
+            box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25);
         }
 
         /* تنسيق السكرول */

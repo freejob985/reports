@@ -41,31 +41,46 @@ try {
             break;
 
         case 'POST':
+            // قراءة البيانات المرسلة
             $input = json_decode(file_get_contents('php://input'), true);
             
+            // التحقق من البيانات المطلوبة
             if (!isset($input['task_id']) || !isset($input['title'])) {
                 throw new Exception('البيانات المطلوبة غير مكتملة');
             }
 
+            // تنظيف وتحقق من البيانات
+            $taskId = filter_var($input['task_id'], FILTER_VALIDATE_INT);
+            $title = trim($input['title']);
+
+            if (!$taskId || empty($title)) {
+                throw new Exception('البيانات المدخلة غير صحيحة');
+            }
+
+            // إضافة المهمة الفرعية
             $result = $db->query('
                 INSERT INTO subtasks (task_id, title)
                 VALUES (:task_id, :title)
             ', [
-                ':task_id' => $input['task_id'],
-                ':title' => trim($input['title'])
+                ':task_id' => $taskId,
+                ':title' => $title
             ]);
 
-            $newId = $db->lastInsertId();
-            $logger->info('تم إضافة مهمة فرعية جديدة', [
-                'id' => $newId,
-                'task_id' => $input['task_id']
-            ]);
+            if ($result) {
+                $newId = $db->lastInsertId();
+                $logger->info('تم إضافة مهمة فرعية جديدة', [
+                    'id' => $newId,
+                    'task_id' => $taskId
+                ]);
 
-            echo json_encode([
-                'success' => true,
-                'message' => 'تم إضافة المهمة الفرعية بنجاح',
-                'id' => $newId
-            ]);
+                echo json_encode([
+                    'success' => true,
+                    'message' => 'تم إضافة المهمة الفرعية بنجاح',
+                    'id' => $newId
+                ]);
+            } else {
+                throw new Exception('فشل في إضافة المهمة الفرعية');
+            }
             break;
 
         case 'PUT':

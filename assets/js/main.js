@@ -185,12 +185,14 @@ function renderTasks() {
                     <div class="subtasks-section mb-3">
                         <h6 class="mb-3">المهام الفرعية</h6>
                         
-                        <!-- نموذج إضافة مهمة فرعية -->
+                        <!-- تحديث نموذج إضافة مهمة فرعية -->
                         <div class="input-group mb-3">
-                            <input type="text" class="form-control subtask-input" 
+                            <input type="text" 
+                                   class="form-control subtask-input" 
                                    data-task-id="${task.id}"
                                    placeholder="أضف مهمة فرعية جديدة"
-                                   onkeypress="handleSubtaskKeyPress(event, ${task.id})">
+                                   onkeypress="handleSubtaskKeyPress(event, ${task.id})"
+                                   autocomplete="off">
                             <button class="btn btn-outline-primary" onclick="addSubtask(${task.id})">
                                 <i class="fas fa-plus"></i>
                             </button>
@@ -291,7 +293,7 @@ function updateOverallProgress() {
     });
 }
 
-// دالة تحميل المهام الفرعية لمهمة محددة
+// دالة تحميل المها الفرعية لمهمة محددة
 function loadTaskSubtasks(taskId) {
     $.ajax({
         url: `api/subtasks.php?task_id=${taskId}`,
@@ -335,7 +337,7 @@ function renderTaskSubtasks(taskId, subtasks) {
                     <input class="form-check-input" type="checkbox" 
                            ${subtask.completed ? 'checked' : ''}
                            onchange="toggleSubtask(${subtask.id}, this.checked, ${taskId})">
-                    <label class="form-check-label">${escapeHtml(subtask.title)}</label>
+                    <label class="form-check-label" style="${subtask.completed ? 'text-decoration: line-through;' : ''}">${escapeHtml(subtask.title)}</label>
                 </div>
                 <button class="btn btn-sm btn-outline-danger" onclick="deleteSubtask(${subtask.id}, ${taskId})">
                     <i class="fas fa-times"></i>
@@ -378,11 +380,12 @@ function updateTaskProgress(taskId, subtasks) {
  * @param {number} taskId - معرف المهمة الرئيسية
  */
 function toggleSubtask(subtaskId, completed, taskId) {
-    // منع السلوك الافتراضي وتحريك الصفحة
     event.preventDefault();
     event.stopPropagation();
 
     const subtaskElement = $(`.list-group-item[data-subtask-id="${subtaskId}"]`);
+    const checkboxElement = subtaskElement.find('input[type="checkbox"]');
+    const labelElement = subtaskElement.find('.form-check-label');
 
     $.ajax({
         url: 'api/subtasks.php',
@@ -394,18 +397,31 @@ function toggleSubtask(subtaskId, completed, taskId) {
         }),
         success: function(response) {
             if (response.success) {
-                // تحديث المظهر بشكل متحرك
-                subtaskElement.toggleClass('completed-subtask', completed);
+                // تحديث مظهر المهمة الفرعية
+                if (completed) {
+                    subtaskElement.addClass('completed-subtask');
+                    labelElement.css('text-decoration', 'line-through');
+                } else {
+                    subtaskElement.removeClass('completed-subtask');
+                    labelElement.css('text-decoration', 'none');
+                }
 
-                // تحديث التقدم بدون تحريك الصفحة
+                // تحديث حالة الـ checkbox
+                checkboxElement.prop('checked', completed);
+
+                // تحديث تقدم المهمة
                 loadTaskSubtasks(taskId);
             } else {
                 toastr.error(response.message || 'حدث خطأ أثناء تحديث المهمة الفرعية');
+                // إعادة الـ checkbox لحالته السابقة
+                checkboxElement.prop('checked', !completed);
             }
         },
         error: function(xhr, status, error) {
             console.error('Error updating subtask:', error);
             toastr.error('حدث خطأ أثناء تحديث المهمة الفرعية');
+            // إعادة الـ checkbox لحالته السابقة
+            checkboxElement.prop('checked', !completed);
         }
     });
 }
@@ -446,25 +462,23 @@ function handleSubtaskKeyPress(event, taskId) {
  * @param {number} taskId - معرف المهمة الرئيسية
  */
 function addSubtask(taskId) {
+    // تحديد حقل الإدخال باستخدام معرف المهمة
     const input = $(`.subtask-input[data-task-id="${taskId}"]`);
     const title = input.val().trim();
-    const errorContainer = input.siblings('.error-message');
 
-    // إزالة رسالة الخطأ السابقة
-    errorContainer.removeClass('show');
+    // إزالة رسائل الخطأ السابقة
+    input.removeClass('is-invalid');
+    input.parent().find('.error-message').remove();
 
+    // التحقق من القيمة المدخلة
     if (!title) {
-        // إظهار رسالة الخطأ بشكل متحرك
-        if (!errorContainer.length) {
-            input.after('<div class="error-message">يرجى إدخال عنوان المهمة الفرعية</div>');
-        }
-        setTimeout(() => {
-            input.siblings('.error-message').addClass('show');
-        }, 10);
+        input.addClass('is-invalid');
+        input.parent().append('<div class="error-message text-danger mt-1">يرجى إدخال عنوان المهمة الفرعية</div>');
         input.focus();
         return;
     }
 
+    // إرسال طلب إضافة المهمة الفرعية
     $.ajax({
         url: 'api/subtasks.php',
         method: 'POST',
@@ -473,18 +487,36 @@ function addSubtask(taskId) {
             task_id: taskId,
             title: title
         }),
+        beforeSend: function() {
+            // تعطيل حقل الإدخال والزر أثناء الإرسال
+            input.prop('disabled', true);
+            input.siblings('button').prop('disabled', true);
+        },
         success: function(response) {
             if (response.success) {
-                input.val('').focus();
+                // مسح حقل الإدخال وإعادة التركيز
+                input.val('').removeClass('is-invalid');
+                input.focus();
+
+                // تحديث قائمة المهام الفرعية
                 loadTaskSubtasks(taskId);
+
+                // إظهار رسالة نجاح
                 toastr.success('تم إضافة المهمة الفرعية بنجاح');
             } else {
                 toastr.error(response.message || 'حدث خطأ أثناء إضافة المهمة الفرعية');
+                input.addClass('is-invalid');
             }
         },
         error: function(xhr, status, error) {
             console.error('Error adding subtask:', error);
             toastr.error('حدث خطأ أثناء إضافة المهمة الفرعية');
+            input.addClass('is-invalid');
+        },
+        complete: function() {
+            // إعادة تفعيل حقل الإدخال والزر
+            input.prop('disabled', false);
+            input.siblings('button').prop('disabled', false);
         }
     });
 }

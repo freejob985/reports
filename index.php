@@ -155,42 +155,39 @@
             border-top: 1px solid rgba(0,0,0,0.1);
         }
 
-        /* تصميم المهام المكتملة */
+        /* تحديث تصميم المهام المكتملة */
         .completed-subtask {
+            position: relative;
+            opacity: 0.8;
+            background-color: #f8f9fa !important;
+        }
+
+        .completed-subtask .form-check-label {
             text-decoration: line-through;
-            opacity: 0.7;
+            color: #6c757d;
+        }
+
+        /* تحسين تصميم حقل إدخال المهام الفرعية */
+        .subtask-input {
+            border: 1px solid #ced4da;
             transition: all 0.3s ease;
-            background-color: #f8f9fa;
         }
 
-        /* تحسين حركة البروجرس بار */
-        .progress {
-            height: 12px;
-            border-radius: 6px;
-            background-color: #e9ecef;
-            overflow: hidden;
-            margin: 1rem 0;
-            position: relative;
+        .subtask-input.is-invalid {
+            border-color: #dc3545;
+            box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
         }
 
-        .progress-bar {
-            transition: width 0.4s ease-in-out;
-            position: relative;
-        }
-
-        /* تصميم رسالة الخطأ */
         .error-message {
             color: #dc3545;
             font-size: 0.875rem;
             margin-top: 0.25rem;
-            display: none;
-            opacity: 0;
-            transition: opacity 0.3s ease;
+            animation: fadeIn 0.3s ease;
         }
 
-        .error-message.show {
-            display: block;
-            opacity: 1;
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-5px); }
+            to { opacity: 1; transform: translateY(0); }
         }
     </style>
 </head>

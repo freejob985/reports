@@ -629,6 +629,66 @@
             transform: translateY(-2px);
             z-index: 2;
         }
+
+        /* تنسيق أزرار المهام الرئيسية */
+        .task-action-btn {
+            background: linear-gradient(135deg, #6B73FF 0%, #000DFF 100%);
+            border: none;
+            padding: 10px 20px;
+            color: white;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            margin: 5px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .task-action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+            background: linear-gradient(135deg, #000DFF 0%, #6B73FF 100%);
+        }
+
+        .task-action-btn.warning {
+            background: linear-gradient(135deg, #FFB75E 0%, #ED8F03 100%);
+        }
+
+        .task-action-btn.danger {
+            background: linear-gradient(135deg, #FF6B6B 0%, #FF0000 100%);
+        }
+
+        .task-action-btn.success {
+            background: linear-gradient(135deg, #28C76F 0%, #48DA89 100%);
+        }
+
+        .task-action-btn i {
+            margin-right: 8px;
+        }
+
+        /* تنسيق شارات التواريخ */
+        .date-badge {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 50px;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin: 5px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .date-badge i {
+            font-size: 0.8rem;
+        }
+
+        .date-badge.created {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .date-badge.updated {
+            background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+        }
     </style>
 </head>
 <body>

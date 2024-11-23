@@ -186,27 +186,36 @@
         }
 
         reports.forEach(report => {
+            const createdDate = new Date(report.created_at.replace(' ', 'T'));
             const timeAgoText = timeAgo(report.created_at);
-            const reportDate = new Date(report.created_at.replace(' ', 'T')).toLocaleString('ar-SA', {
+
+            // تنسيق التاريخ بالعربية
+            const formattedDate = new Intl.DateTimeFormat('ar-SA', {
                 year: 'numeric',
                 month: 'long',
                 day: 'numeric',
                 hour: 'numeric',
                 minute: 'numeric'
-            });
+            }).format(createdDate);
 
             const reportElement = $(`
                 <div class="card mb-2 report-card" data-report-id="${report.id}">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <div>
-                            <span class="time-ago">${timeAgoText}</span>
-                            <small class="text-muted ms-2">${reportDate}</small>
+                        <div class="report-dates">
+                            <span class="date-badge created">
+                                <i class="fas fa-calendar-plus"></i>
+                                تاريخ الإنشاء: ${formattedDate}
+                            </span>
+                            <span class="date-badge">
+                                <i class="fas fa-clock"></i>
+                                ${timeAgoText}
+                            </span>
                         </div>
                         <div class="report-actions">
-                            <button class="report-btn btn-outline-primary" onclick="editReport(${report.id}, ${taskId})">
+                            <button class="task-action-btn" onclick="editReport(${report.id}, ${taskId})">
                                 <i class="fas fa-edit"></i> تعديل
                             </button>
-                            <button class="report-btn btn-outline-danger" onclick="deleteReport(${report.id}, ${taskId})">
+                            <button class="task-action-btn danger" onclick="deleteReport(${report.id}, ${taskId})">
                                 <i class="fas fa-trash"></i> حذف
                             </button>
                         </div>

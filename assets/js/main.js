@@ -262,18 +262,27 @@ function updateOverallProgress() {
     const completedTasks = tasks.filter(task => task.status === 'completed').length;
     const progress = tasks.length > 0 ? (completedTasks / tasks.length) * 100 : 0;
     const progressBar = $('#overall-progress');
-    progressBar.css('width', `${progress}%`).text(`${Math.round(progress)}%`);
 
-    // تحديث لون شريط التقدم بناءً على النسبة
-    if (progress >= 75) {
-        progressBar.removeClass().addClass('progress-bar bg-success');
-    } else if (progress >= 50) {
-        progressBar.removeClass().addClass('progress-bar bg-info');
-    } else if (progress >= 25) {
-        progressBar.removeClass().addClass('progress-bar bg-warning');
-    } else {
-        progressBar.removeClass().addClass('progress-bar bg-danger');
-    }
+    // تحديث تدريجي للنسبة
+    $({ percent: parseFloat(progressBar.css('width')) || 0 }).animate({ percent: progress }, {
+        duration: 1000,
+        step: function(now) {
+            progressBar.css('width', now + '%');
+            progressBar.text(Math.round(now) + '%');
+        },
+        complete: function() {
+            // تحديث اللون بناءً على النسبة
+            if (progress >= 75) {
+                progressBar.removeClass().addClass('progress-bar bg-success');
+            } else if (progress >= 50) {
+                progressBar.removeClass().addClass('progress-bar bg-info');
+            } else if (progress >= 25) {
+                progressBar.removeClass().addClass('progress-bar bg-warning');
+            } else {
+                progressBar.removeClass().addClass('progress-bar bg-danger');
+            }
+        }
+    });
 }
 
 // دالة تحميل المهام الفرعية لمهمة محددة
@@ -312,22 +321,28 @@ function renderTaskSubtasks(taskId, subtasks) {
         return;
     }
 
-    subtasks.forEach(subtask => {
-        const element = $(`
-            <div class="list-group-item d-flex justify-content-between align-items-center">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" 
-                           ${subtask.completed ? 'checked' : ''}
-                           onchange="toggleSubtask(${subtask.id}, this.checked)">
-                    <label class="form-check-label">${escapeHtml(subtask.title)}</label>
-                </div>
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteSubtask(${subtask.id})">
-                    <i class="fas fa-times"></i>
-                </button>
+    // عرض ملخص فقط
+    const completedCount = subtasks.filter(s => s.completed).length;
+    const totalCount = subtasks.length;
+    const progress = (completedCount / totalCount) * 100;
+
+    const summary = $(`
+        <div>
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <span class="text-muted">المهام المكتملة: ${completedCount}/${totalCount}</span>
+                <span class="badge bg-${progress === 100 ? 'success' : 'info'}">${Math.round(progress)}%</span>
             </div>
-        `);
-        subtasksList.append(element);
-    });
+            <div class="progress" style="height: 10px;">
+                <div class="progress-bar" role="progressbar" 
+                     style="width: ${progress}%" 
+                     aria-valuenow="${progress}" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                </div>
+            </div>
+        </div>
+    `);
+    subtasksList.append(summary);
 }
 
 // دالة عرض التقارير
@@ -340,21 +355,15 @@ function renderTaskReports(taskId, reports) {
         return;
     }
 
-    reports.forEach(report => {
-        const reportDate = new Date(report.created_at).toLocaleString('ar-SA');
-        const element = $(`
-            <div class="card mb-2">
-                <div class="card-header d-flex justify-content-between align-items-center py-1">
-                    <small class="text-muted">${reportDate}</small>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteReport(${report.id})">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-                <div class="card-body py-2">
-                    ${report.html_content}
-                </div>
-            </div>
-        `);
-        reportsList.append(element);
-    });
+    // عرض ملخص فقط
+    const latestReport = reports[0];
+    const reportDate = new Date(latestReport.created_at).toLocaleString('ar-SA');
+
+    const summary = $(`
+        <div class="d-flex justify-content-between align-items-center">
+            <span class="text-muted">عدد التقارير: ${reports.length}</span>
+            <span class="text-muted">آخر تحديث: ${reportDate}</span>
+        </div>
+    `);
+    reportsList.append(summary);
 }

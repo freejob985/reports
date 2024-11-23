@@ -17,14 +17,21 @@ toastr.options = {
 
 // تحديث تعريف الحالات
 const taskStatuses = {
-    'pending': { text: 'قيد الانتظار', icon: 'clock', class: 'bg-warning' },
-    'in-progress': { text: 'قيد التنفيذ', icon: 'spinner fa-spin', class: 'bg-info' },
-    'completed': { text: 'مكتملة', icon: 'check-circle', class: 'bg-success' },
-    'development': { text: 'تطوير', icon: 'code', class: 'bg-primary' },
-    'paused': { text: 'إيقاف', icon: 'pause-circle', class: 'bg-secondary' },
-    'postponed': { text: 'تأجيل', icon: 'clock', class: 'bg-warning' },
-    'searching': { text: 'بحث', icon: 'search', class: 'bg-info' },
-    'cancelled': { text: 'إلغاء', icon: 'times-circle', class: 'bg-danger' }
+    'pending': {
+        text: 'قيد الانتظار',
+        class: 'bg-warning',
+        icon: 'clock'
+    },
+    'in-progress': {
+        text: 'قيد التنفيذ',
+        class: 'bg-info',
+        icon: 'spinner fa-spin'
+    },
+    'completed': {
+        text: 'مكتملة',
+        class: 'bg-success',
+        icon: 'check-circle'
+    }
 };
 
 // دالة تحميل المهام عند بدء التطبيق
@@ -610,7 +617,7 @@ function renderTaskSubtasks(taskId, subtasks) {
  * @param {number} progress - نسبة التقدم
  */
 function updateProgressBarColor(progressBar, progress) {
-    // إزالة جميع الألوان السابقة
+    // إزالة جميع الأل��ان السابقة
     progressBar.removeClass('bg-danger bg-warning bg-info bg-success');
 
     // إضافة اللون المناسب بناءً على نسبة التقدم
@@ -779,3 +786,13 @@ $(document).ready(function() {
     showReports = localStorage.getItem('showReports') !== 'false';
     loadTasks();
 });
+
+function getStatusBadge(status) {
+    const statusInfo = taskStatuses[status];
+    return `
+        <span class="badge ${statusInfo.class}">
+            <i class="fas fa-${statusInfo.icon}"></i>
+            ${statusInfo.text}
+        </span>
+    `;
+}

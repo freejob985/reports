@@ -1,29 +1,30 @@
 /**
- * وحدة تصدير التقارير إلى PDF
- * تعتمد على مكتبات:
- * - jsPDF: لإنشاء ملفات PDF
- * - html2canvas: لتحويل HTML إلى صور
+ * وحدة تصدير التقارير إلى PDF باستخدام html2pdf.js
+ * المكتبات المطلوبة:
+ * - html2pdf.js: https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js
  */
 
 // تعريف الثوابت العامة
-const PDF_MARGIN = 20; // الهامش
-const PDF_FONT = 'helvetica'; // الخط المستخدم
+const PDF_MARGIN = 20;
+const COLORS = {
+    primary: '#0d6efd',
+    success: '#198754',
+    warning: '#ffc107',
+    danger: '#dc3545',
+    secondary: '#6c757d',
+    light: '#f8f9fa',
+    dark: '#212529'
+};
 
 /**
  * تصدير تقرير المشروع إلى PDF
  * @param {number} projectId - معرف المشروع
  */
 function exportProjectReport(projectId = null) {
-    // تهيئة jsPDF
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('p', 'mm', 'a4');
-
-    // الهوامش
-    let yPos = PDF_MARGIN;
-
-    // تنسيق العربية
-    doc.setFont(PDF_FONT, "normal");
-    doc.setR2L(true);
+    // إنشاء عنصر مؤقت لتخزين محتوى التقرير
+    const reportContainer = document.createElement('div');
+    reportContainer.className = 'report-container';
+    document.body.appendChild(reportContainer);
 
     // جلب معلومات المشروع والمهام
     $.ajax({
@@ -32,194 +33,192 @@ function exportProjectReport(projectId = null) {
         success: async function(response) {
             if (response.success) {
                 const project = response.project;
-                const today = new Date().toLocaleDateString('ar-SA');
 
-                // عنوان التقرير
-                doc.setFontSize(24);
-                doc.text(`تقرير ${project.name} ليوم ${today}`, doc.internal.pageSize.width / 2, yPos, { align: 'center' });
-                yPos += 15;
+                // استخدام التاريخ العربي
+                const today = new Intl.DateTimeFormat('ar-SA', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                }).format(new Date());
 
-                // معلومات المشروع
-                doc.setFontSize(16);
-                doc.text(`وصف المشروع:`, PDF_MARGIN, yPos);
-                yPos += 10;
+                // إنشاء هيكل التقرير
+                reportContainer.innerHTML = `
+                    <div class="report-header" style="background: ${COLORS.primary}; color: white; padding: 20px; text-align: center;">
+                        <h1>تقرير ${project.name}</h1>
+                        <p>ليوم ${today}</p>
+                    </div>
 
-                doc.setFontSize(12);
-                const description = project.description || 'لا يوجد وصف';
-                const descriptionLines = doc.splitTextToSize(description, doc.internal.pageSize.width - 2 * PDF_MARGIN);
-                doc.text(descriptionLines, PDF_MARGIN, yPos);
-                yPos += descriptionLines.length * 7 + 10;
+                    <div class="report-content" style="padding: 20px;">
+                        <div class="project-info" style="background: ${COLORS.light}; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                            <h2>وصف المشروع</h2>
+                            <p>${project.description || 'لا يوجد وصف'}</p>
+                        </div>
 
-                // إحصائيات المشروع
-                await addProjectStats(doc, projectId, yPos);
-                yPos += 40;
+                        <div class="project-stats" id="projectStats">
+                            <!-- سيتم إضافة الإحصائيات هنا -->
+                        </div>
 
-                // المهام
-                const tasksResponse = await $.ajax({
-                    url: `api/tasks.php?project_id=${projectId}&stats=true`,
-                    method: 'GET'
-                });
+                        <div class="tasks-section">
+                            <h2>المهام</h2>
+                            <div id="tasksList">
+                                <!-- سيتم إضافة المهام هنا -->
+                            </div>
+                        </div>
+                    </div>
+                `;
 
-                if (tasksResponse.success) {
-                    doc.setFontSize(16);
-                    doc.text('المهام:', PDF_MARGIN, yPos);
-                    yPos += 10;
+                // إضافة الإحصائيات
+                const stats = await getProjectStats(projectId);
+                document.getElementById('projectStats').innerHTML = `
+                    <div style="background: ${COLORS.light}; padding: 15px; border-radius: 5px; margin-bottom: 20px;">
+                        <h3>إحصائيات المشروع</h3>
+                        <p>إجمالي المهام: ${stats.total}</p>
+                        <p>المهام المكتملة: ${stats.completed}</p>
+                        <p>المهام قيد التنفيذ: ${stats.in_progress}</p>
+                        <div class="progress-bar" style="background: ${COLORS.success}; width: ${stats.progress}%; height: 20px; border-radius: 5px;">
+                            ${stats.progress}%
+                        </div>
+                    </div>
+                `;
 
-                    for (const task of tasksResponse.tasks) {
-                        // التحقق من الحاجة لصفحة جديدة
-                        if (yPos > doc.internal.pageSize.height - 30) {
-                            doc.addPage();
-                            yPos = PDF_MARGIN;
-                        }
+                // إضافة المهام
+                const tasks = await getProjectTasks(projectId);
+                const tasksListElement = document.getElementById('tasksList');
 
-                        await addTaskToReport(doc, task, yPos);
-                        yPos += 30;
+                for (const task of tasks) {
+                    const taskElement = document.createElement('div');
+                    taskElement.className = 'task-item';
+                    taskElement.style.cssText = `
+                        background: white;
+                        padding: 15px;
+                        margin-bottom: 15px;
+                        border-radius: 5px;
+                        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                    `;
 
-                        // المهام الفرعية
-                        const subtasksResponse = await $.ajax({
-                            url: `api/subtasks.php?task_id=${task.id}`,
-                            method: 'GET'
+                    taskElement.innerHTML = `
+                        <h3>${task.title}</h3>
+                        <p>${task.description || ''}</p>
+                        <div class="status-badge" style="
+                            background: ${getStatusColor(task.status)};
+                            color: white;
+                            padding: 5px 10px;
+                            border-radius: 15px;
+                            display: inline-block;
+                        ">
+                            ${getStatusText(task.status)}
+                        </div>
+                    `;
+
+                    // إضافة المهام الفرعية
+                    if (task.subtasks && task.subtasks.length > 0) {
+                        const subtasksList = document.createElement('ul');
+                        task.subtasks.forEach(subtask => {
+                            subtasksList.innerHTML += `
+                                <li style="
+                                    ${subtask.completed ? 'text-decoration: line-through; color: #666;' : ''}
+                                ">
+                                    ${subtask.title}
+                                </li>
+                            `;
                         });
-
-                        if (subtasksResponse.success && subtasksResponse.subtasks.length > 0) {
-                            doc.setFontSize(12);
-                            doc.text('المهام الفرعية:', PDF_MARGIN + 5, yPos);
-                            yPos += 7;
-
-                            for (const subtask of subtasksResponse.subtasks) {
-                                if (yPos > doc.internal.pageSize.height - 20) {
-                                    doc.addPage();
-                                    yPos = PDF_MARGIN;
-                                }
-                                await addSubtaskToReport(doc, subtask, yPos);
-                                yPos += 7;
-                            }
-                            yPos += 5;
-                        }
-
-                        // التقارير
-                        const reportsResponse = await $.ajax({
-                            url: `api/reports.php?task_id=${task.id}`,
-                            method: 'GET'
-                        });
-
-                        if (reportsResponse.success && reportsResponse.reports.length > 0) {
-                            doc.setFontSize(12);
-                            doc.text('التقارير:', PDF_MARGIN + 5, yPos);
-                            yPos += 7;
-
-                            for (const report of reportsResponse.reports) {
-                                if (yPos > doc.internal.pageSize.height - 20) {
-                                    doc.addPage();
-                                    yPos = PDF_MARGIN;
-                                }
-                                await addReportToReport(doc, report, yPos);
-                                yPos += 10;
-                            }
-                            yPos += 5;
-                        }
+                        taskElement.appendChild(subtasksList);
                     }
+
+                    tasksListElement.appendChild(taskElement);
                 }
 
-                // حفظ الملف
-                const fileName = `تقرير_${project.name}_${today}.pdf`;
-                doc.save(fileName);
-                toastr.success('تم تصدير التقرير بنجاح');
+                // خيارات تصدير PDF
+                const options = {
+                    margin: 10,
+                    filename: `تقرير_${project.name}_${today}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: {
+                        scale: 2,
+                        useCORS: true,
+                        logging: false
+                    },
+                    jsPDF: {
+                        unit: 'mm',
+                        format: 'a4',
+                        orientation: 'portrait'
+                    }
+                };
+
+                // تصدير التقرير
+                html2pdf().from(reportContainer).set(options).save()
+                    .then(() => {
+                        // إزالة العنصر المؤقت
+                        reportContainer.remove();
+                        toastr.success('تم تصدير التقرير بنجاح');
+                    })
+                    .catch(error => {
+                        console.error('Error generating PDF:', error);
+                        toastr.error('حدث خطأ أثناء تصدير التقرير');
+                        reportContainer.remove();
+                    });
             }
         },
         error: function(xhr, status, error) {
             console.error('Error exporting report:', error);
             toastr.error('حدث خطأ أثناء تصدير التقرير');
+            reportContainer.remove();
         }
     });
 }
 
 /**
- * إضافة إحصائيات المشروع إلى التقرير
+ * جلب إحصائيات المشروع
+ * @param {number} projectId - معرف المشروع
+ * @returns {Promise<Object>} إحصائيات المشروع
  */
-async function addProjectStats(doc, projectId, yPos) {
+async function getProjectStats(projectId) {
     const response = await $.ajax({
         url: `api/tasks.php?project_id=${projectId}&stats=true`,
         method: 'GET'
     });
-
-    if (response.success) {
-        const stats = response.stats;
-        doc.setFontSize(14);
-        doc.text(`إجمالي المهام: ${stats.total}`, PDF_MARGIN, yPos);
-        doc.text(`المهام المكتملة: ${stats.completed}`, PDF_MARGIN, yPos + 10);
-        doc.text(`المهام قيد التنفيذ: ${stats.in_progress}`, PDF_MARGIN, yPos + 20);
-
-        // رسم شريط التقدم
-        const progress = stats.total > 0 ? Math.round((stats.completed / stats.total) * 100) : 0;
-        drawProgressBar(doc, PDF_MARGIN, yPos + 30, doc.internal.pageSize.width - 2 * PDF_MARGIN, 5, progress);
-    }
+    return response.stats;
 }
 
 /**
- * إضافة مهمة إلى التقرير
- * @param {jsPDF} doc - مستند PDF
- * @param {Object} task - بيانات المهمة
- * @param {number} yPos - الموضع العمودي
+ * جلب مهام المشروع
+ * @param {number} projectId - معرف المشروع
+ * @returns {Promise<Array>} قائمة المهام
  */
-async function addTaskToReport(doc, task, yPos) {
-    doc.setFontSize(14);
-    doc.text(`${task.title}`, PDF_MARGIN, yPos);
-
-    doc.setFontSize(12);
-    doc.text(`الحالة: ${getStatusText(task.status)}`, PDF_MARGIN + 5, yPos + 7);
-
-    if (task.description) {
-        const descriptionLines = doc.splitTextToSize(task.description, doc.internal.pageSize.width - 2 * PDF_MARGIN - 10);
-        doc.text(descriptionLines, PDF_MARGIN + 5, yPos + 14);
-    }
+async function getProjectTasks(projectId) {
+    const response = await $.ajax({
+        url: `api/tasks.php?project_id=${projectId}`,
+        method: 'GET'
+    });
+    return response.tasks;
 }
 
 /**
- * إضافة مهمة فرعية إلى التقرير
- * @param {jsPDF} doc - مستند PDF
- * @param {Object} subtask - بيانات المهمة الفرعية
- * @param {number} yPos - الموضع العمودي
+ * الحصول على لون الحالة
+ * @param {string} status - حالة المهمة
+ * @returns {string} لون الحالة
  */
-async function addSubtaskToReport(doc, subtask, yPos) {
-    doc.setFontSize(10);
-    const status = subtask.completed ? '✓' : '○';
-    doc.text(`${status} ${subtask.title}`, PDF_MARGIN + 10, yPos);
+function getStatusColor(status) {
+    const colors = {
+        'pending': COLORS.warning,
+        'in-progress': COLORS.primary,
+        'completed': COLORS.success,
+        'cancelled': COLORS.danger
+    };
+    return colors[status] || COLORS.secondary;
 }
 
 /**
- * إضافة تقرير إلى المستند
- * @param {jsPDF} doc - مستند PDF
- * @param {Object} report - بيانات التقرير
- * @param {number} yPos - الموضع العمودي
+ * الحصول على نص الحالة
+ * @param {string} status - حالة المهمة
+ * @returns {string} النص العربي للحالة
  */
-async function addReportToReport(doc, report, yPos) {
-    doc.setFontSize(10);
-    const reportLines = doc.splitTextToSize(report.content, doc.internal.pageSize.width - 2 * PDF_MARGIN - 15);
-    doc.text(reportLines, PDF_MARGIN + 10, yPos);
-}
-
-/**
- * رسم شريط التقدم
- * @param {jsPDF} doc - مستند PDF
- * @param {number} x - الموضع الأفقي
- * @param {number} y - الموضع العمودي
- * @param {number} width - العرض
- * @param {number} height - الارتفاع
- * @param {number} progress - نسبة التقدم
- */
-function drawProgressBar(doc, x, y, width, height, progress) {
-    // الإطار الخارجي
-    doc.setDrawColor(200, 200, 200);
-    doc.rect(x, y, width, height);
-
-    // شريط التقدم
-    const progressWidth = (width * progress) / 100;
-    doc.setFillColor(0, 123, 255);
-    doc.rect(x, y, progressWidth, height, 'F');
-
-    // النسبة المئوية
-    doc.setFontSize(10);
-    doc.setTextColor(0, 0, 0);
-    doc.text(`${progress}%`, x + width / 2, y + height + 5, { align: 'center' });
+function getStatusText(status) {
+    const texts = {
+        'pending': 'قيد الانتظار',
+        'in-progress': 'قيد التنفيذ',
+        'completed': 'مكتملة',
+        'cancelled': 'ملغاة'
+    };
+    return texts[status] || status;
 }

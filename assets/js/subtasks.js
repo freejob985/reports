@@ -50,19 +50,7 @@ function renderSubtasks(subtasks) {
     }
 
     subtasks.forEach(subtask => {
-        const element = $(`
-            <div class="list-group-item d-flex justify-content-between align-items-center">
-                <div class="form-check">
-                    <input class="form-check-input" type="checkbox" 
-                           ${subtask.completed ? 'checked' : ''}
-                           onchange="toggleSubtask(${subtask.id}, this.checked)">
-                    <label class="form-check-label">${escapeHtml(subtask.title)}</label>
-                </div>
-                <button class="btn btn-sm btn-danger" onclick="deleteSubtask(${subtask.id})">
-                    <i class="fas fa-trash"></i>
-                </button>
-            </div>
-        `);
+        const element = $(renderSubtask(subtask));
         subtasksList.append(element);
     });
 }
@@ -256,4 +244,30 @@ function editSubtask(subtaskId, taskId) {
             });
         }
     });
+}
+
+function renderSubtask(subtask) {
+    return `
+        <div class="subtask-item ${subtask.completed ? 'completed-subtask' : ''}" 
+             data-id="${subtask.id}">
+            <div class="form-check">
+                <input class="form-check-input" type="checkbox" 
+                       ${subtask.completed ? 'checked' : ''}
+                       onchange="toggleSubtask(${subtask.id}, this.checked)">
+                <label class="form-check-label">
+                    ${escapeHtml(subtask.title)}
+                </label>
+            </div>
+            <div class="subtask-actions ms-auto">
+                <button class="btn btn-sm btn-outline-primary" 
+                        onclick="editSubtask(${subtask.id})">
+                    <i class="fas fa-edit"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger" 
+                        onclick="deleteSubtask(${subtask.id})">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+    `;
 }

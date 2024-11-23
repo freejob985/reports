@@ -12,7 +12,7 @@
     <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.css" rel="stylesheet">
     <link href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css" rel="stylesheet">
-    
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;700&display=swap" rel="stylesheet">
     <!-- خط Cairo و Tajawal -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,6 +20,9 @@
     
     <!-- إضافة Favicon -->
     <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+    
+    <!-- إضافة ملف الخط العربي -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Naskh+Arabic:wght@400;700&display=swap" rel="stylesheet">
     
     <style>
         :root {
@@ -612,7 +615,7 @@
             filter: brightness(1.1);
         }
 
-        /* تنسيق مجموعة الأزرار */
+        /* تنسيق مجموعة الأزرا�� */
         .btn-group {
             border-radius: 50px;
             overflow: hidden;
@@ -1032,7 +1035,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">إضافة مهمة جديدة</h5>
+                    <h5 class="modal-title">إ��افة مهمة جديدة</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -1124,6 +1127,9 @@
     <!-- إضافة مكتبات PDF -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="assets/js/fonts.js"></script>
     <script src="assets/js/export.js"></script>
+    <!-- إضافة مكتبة html2pdf -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
 </html> 

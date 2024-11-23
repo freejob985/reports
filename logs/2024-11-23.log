@@ -122,3 +122,353 @@
 [02:51:18] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
 [02:51:18] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
 [02:51:18] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:55:13] [INFO] بدء معالجة الطلب {"method":"GET","request_data":"","request_headers":{"Host":"reports.com","Connection":"keep-alive","Pragma":"no-cache","Cache-Control":"no-cache","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","X-Requested-With":"XMLHttpRequest","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:55:13] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"SELECT * FROM tasks ORDER BY created_at DESC","params":[]}
+[02:55:13] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
+[02:55:13] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
+[02:55:13] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:55:13] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:13] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"2"}}
+[02:55:13] [INFO] تم جلب المهام الفرعية {"task_id":"2","count":3}
+[02:55:13] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:13] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:55:13] [INFO] تم جلب التقارير {"task_id":"2","count":0}
+[02:55:13] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:13] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:55:13] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":0}
+[02:55:13] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:13] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"1"}}
+[02:55:13] [INFO] تم جلب التقارير {"task_id":"1","count":0}
+[02:55:21] [INFO] بدء معالجة طلب المهام الفرعية {"method":"PUT","request_data":"{\"id\":1,\"completed\":false}"}
+[02:55:21] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                UPDATE subtasks \r\n                SET completed = :completed\r\n                WHERE id = :id\r\n            ","params":{":id":1,":completed":0}}
+[02:55:21] [INFO] تم تحديث حالة المهمة الفرعية {"id":1,"completed":false}
+[02:55:21] [INFO] بدء معالجة الطلب {"method":"GET","request_data":"","request_headers":{"Host":"reports.com","Connection":"keep-alive","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","X-Requested-With":"XMLHttpRequest","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:55:21] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"SELECT * FROM tasks ORDER BY created_at DESC","params":[]}
+[02:55:21] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
+[02:55:21] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
+[02:55:21] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:55:21] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:21] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"2"}}
+[02:55:21] [INFO] تم جلب المهام الفرعية {"task_id":"2","count":3}
+[02:55:21] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:21] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:55:21] [INFO] تم جلب التقارير {"task_id":"2","count":0}
+[02:55:21] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:21] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:21] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:55:21] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"1"}}
+[02:55:21] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":0}
+[02:55:21] [INFO] تم جلب التقارير {"task_id":"1","count":0}
+[02:55:22] [INFO] بدء معالجة طلب المهام الفرعية {"method":"PUT","request_data":"{\"id\":2,\"completed\":false}"}
+[02:55:23] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                UPDATE subtasks \r\n                SET completed = :completed\r\n                WHERE id = :id\r\n            ","params":{":id":2,":completed":0}}
+[02:55:23] [INFO] تم تحديث حالة المهمة الفرعية {"id":2,"completed":false}
+[02:55:23] [INFO] بدء معالجة الطلب {"method":"GET","request_data":"","request_headers":{"Host":"reports.com","Connection":"keep-alive","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","X-Requested-With":"XMLHttpRequest","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:55:23] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"SELECT * FROM tasks ORDER BY created_at DESC","params":[]}
+[02:55:23] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
+[02:55:23] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
+[02:55:23] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:55:23] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:23] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"2"}}
+[02:55:23] [INFO] تم جلب المهام الفرعية {"task_id":"2","count":3}
+st_data":""}
+[02:55:23] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:55:23] [INFO] تم جلب التقارير {"task_id":"2","count":0}
+[02:55:23] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:23] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:55:23] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:23] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":0}
+[02:55:23] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"1"}}
+[02:55:23] [INFO] تم جلب التقارير {"task_id":"1","count":0}
+[02:55:23] [INFO] بدء معالجة طلب المهام الفرعية {"method":"PUT","request_data":"{\"id\":3,\"completed\":false}"}
+[02:55:24] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                UPDATE subtasks \r\n                SET completed = :completed\r\n                WHERE id = :id\r\n            ","params":{":id":3,":completed":0}}
+[02:55:24] [INFO] تم تحديث حالة المهمة الفرعية {"id":3,"completed":false}
+[02:55:24] [INFO] بدء معالجة الطلب {"method":"GET","request_data":"","request_headers":{"Host":"reports.com","Connection":"keep-alive","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","X-Requested-With":"XMLHttpRequest","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:55:24] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"SELECT * FROM tasks ORDER BY created_at DESC","params":[]}
+[02:55:24] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
+[02:55:24] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
+[02:55:24] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:55:24] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:24] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"2"}}
+[02:55:24] [INFO] تم جلب المهام الفرعية {"task_id":"2","count":3}
+[02:55:24] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:24] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:55:24] [INFO] تم جلب التقارير {"task_id":"2","count":0}
+[02:55:24] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:24] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:55:24] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:24] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":0}
+[02:55:24] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"1"}}
+[02:55:24] [INFO] تم جلب التقارير {"task_id":"1","count":0}
+[02:55:27] [INFO] بدء معالجة طلب المهام الفرعية {"method":"PUT","request_data":"{\"id\":3,\"completed\":true}"}
+[02:55:27] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                UPDATE subtasks \r\n                SET completed = :completed\r\n                WHERE id = :id\r\n            ","params":{":id":3,":completed":1}}
+[02:55:27] [INFO] تم تحديث حالة المهمة الفرعية {"id":3,"completed":true}
+[02:55:27] [INFO] بدء معالجة الطلب {"method":"GET","request_data":"","request_headers":{"Host":"reports.com","Connection":"keep-alive","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","X-Requested-With":"XMLHttpRequest","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:55:27] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"SELECT * FROM tasks ORDER BY created_at DESC","params":[]}
+[02:55:27] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
+[02:55:27] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
+[02:55:27] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:55:27] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:27] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"2"}}
+[02:55:27] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:27] [INFO] تم جلب المهام الفرعية {"task_id":"2","count":3}
+[02:55:27] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:55:27] [INFO] تم جلب التقارير {"task_id":"2","count":0}
+[02:55:27] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:27] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:55:27] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:27] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":0}
+[02:55:27] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"1"}}
+[02:55:27] [INFO] تم جلب التقارير {"task_id":"1","count":0}
+[02:55:29] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:29] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:55:29] [INFO] تم جلب التقارير {"task_id":"2","count":0}
+[02:55:36] [INFO] بدء معالجة طلب التقارير {"method":"POST","request_data":"{\"task_id\":2,\"content\":\"شششششششششششش\",\"html_content\":\"<p><strong>شششششششششششش<\/strong><\/p>\"}"}
+[02:55:36] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                INSERT INTO reports (task_id, content, html_content)\r\n                VALUES (:task_id, :content, :html_content)\r\n            ","params":{":task_id":2,":content":"شششششششششششش",":html_content":"<p><strong>شششششششششششش<\/strong><\/p>"}}
+[02:55:36] [INFO] تم إضافة تقرير جديد {"id":1,"task_id":2}
+[02:55:36] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:36] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:55:36] [INFO] تم جلب التقارير {"task_id":"2","count":1}
+[02:55:36] [INFO] بدء معالجة الطلب {"method":"GET","request_data":"","request_headers":{"Host":"reports.com","Connection":"keep-alive","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","X-Requested-With":"XMLHttpRequest","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:55:36] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"SELECT * FROM tasks ORDER BY created_at DESC","params":[]}
+[02:55:36] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
+[02:55:36] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
+[02:55:36] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:55:36] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:36] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"2"}}
+[02:55:36] [INFO] تم جلب المهام الفرعية {"task_id":"2","count":3}
+[02:55:36] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:36] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:55:36] [INFO] تم جلب التقارير {"task_id":"2","count":1}
+[02:55:36] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:36] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:55:36] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":0}
+[02:55:36] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:36] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"1"}}
+[02:55:36] [INFO] تم جلب التقارير {"task_id":"1","count":0}
+[02:55:41] [INFO] بدء معالجة طلب المهام الفرعية {"method":"PUT","request_data":"{\"id\":2,\"completed\":true}"}
+[02:55:41] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                UPDATE subtasks \r\n                SET completed = :completed\r\n                WHERE id = :id\r\n            ","params":{":id":2,":completed":1}}
+[02:55:41] [INFO] تم تحديث حالة المهمة الفرعية {"id":2,"completed":true}
+[02:55:41] [INFO] بدء معالجة الطلب {"method":"GET","request_data":"","request_headers":{"Host":"reports.com","Connection":"keep-alive","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","X-Requested-With":"XMLHttpRequest","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:55:41] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"SELECT * FROM tasks ORDER BY created_at DESC","params":[]}
+[02:55:41] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
+[02:55:41] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
+[02:55:41] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:55:41] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:41] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"2"}}
+[02:55:41] [INFO] تم جلب المهام الفرعية {"task_id":"2","count":3}
+[02:55:41] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:41] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:55:41] [INFO] تم جلب التقارير {"task_id":"2","count":1}
+{"method":"GET","request_data":""}
+[02:55:41] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:55:41] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:41] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":0}
+[02:55:41] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"1"}}
+[02:55:41] [INFO] تم جلب التقارير {"task_id":"1","count":0}
+[02:55:42] [INFO] بدء معالجة طلب المهام الفرعية {"method":"PUT","request_data":"{\"id\":1,\"completed\":true}"}
+[02:55:42] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                UPDATE subtasks \r\n                SET completed = :completed\r\n                WHERE id = :id\r\n            ","params":{":id":1,":completed":1}}
+[02:55:42] [INFO] تم تحديث حالة المهمة الفرعية {"id":1,"completed":true}
+[02:55:42] [INFO] بدء معالجة الطلب {"method":"GET","request_data":"","request_headers":{"Host":"reports.com","Connection":"keep-alive","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","X-Requested-With":"XMLHttpRequest","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:55:42] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"SELECT * FROM tasks ORDER BY created_at DESC","params":[]}
+[02:55:42] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
+[02:55:42] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
+[02:55:42] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:55:42] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:42] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"2"}}
+[02:55:42] [INFO] تم جلب المهام الفرعية {"task_id":"2","count":3}
+[02:55:42] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:42] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:55:42] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:42] [INFO] تم جلب التقارير {"task_id":"2","count":1}
+[02:55:42] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:55:42] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:42] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":0}
+[02:55:42] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"1"}}
+[02:55:42] [INFO] تم جلب التقارير {"task_id":"1","count":0}
+[02:55:53] [INFO] بدء معالجة الطلب {"method":"PUT","request_data":"{\"id\":\"2\",\"title\":\"Fuga In laudantium\",\"description\":\"Qui eius amet sapie\",\"status\":\"completed\"}","request_headers":{"Host":"reports.com","Connection":"keep-alive","Content-Length":"96","X-Requested-With":"XMLHttpRequest","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","Content-Type":"application\/json","Origin":"http:\/\/reports.com","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:55:53] [INFO] تم التحقق من صحة البيانات بنجاح {"cleanData":{"title":"Fuga In laudantium","description":"Qui eius amet sapie","status":"completed"}}
+[02:55:53] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    UPDATE tasks \r\n                    SET title = :title,\r\n                        description = :description,\r\n                        status = :status\r\n                    WHERE id = :id\r\n                ","params":{":id":"2",":title":"Fuga In laudantium",":description":"Qui eius amet sapie",":status":"completed"}}
+[02:55:53] [INFO] تم تحديث المهمة بنجاح {"task_id":"2","data":{"title":"Fuga In laudantium","description":"Qui eius amet sapie","status":"completed"}}
+[02:55:53] [INFO] بدء معالجة الطلب {"method":"GET","request_data":"","request_headers":{"Host":"reports.com","Connection":"keep-alive","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","X-Requested-With":"XMLHttpRequest","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:55:53] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"SELECT * FROM tasks ORDER BY created_at DESC","params":[]}
+[02:55:53] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
+[02:55:53] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
+[02:55:53] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:55:53] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:53] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"2"}}
+[02:55:53] [INFO] تم جلب المهام الفرعية {"task_id":"2","count":3}
+[02:55:53] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:53] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:55:53] [INFO] تم جلب التقارير {"task_id":"2","count":1}
+[02:55:53] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:53] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:53] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:55:53] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"1"}}
+[02:55:53] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":0}
+[02:55:53] [INFO] تم جلب التقارير {"task_id":"1","count":0}
+[02:55:58] [INFO] بدء معالجة طلب المهام الفرعية {"method":"PUT","request_data":"{\"id\":1,\"completed\":false}"}
+[02:55:58] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                UPDATE subtasks \r\n                SET completed = :completed\r\n                WHERE id = :id\r\n            ","params":{":id":1,":completed":0}}
+[02:55:58] [INFO] تم تحديث حالة المهمة الفرعية {"id":1,"completed":false}
+[02:55:58] [INFO] بدء معالجة الطلب {"method":"GET","request_data":"","request_headers":{"Host":"reports.com","Connection":"keep-alive","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","X-Requested-With":"XMLHttpRequest","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:55:58] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"SELECT * FROM tasks ORDER BY created_at DESC","params":[]}
+[02:55:58] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
+[02:55:58] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
+[02:55:58] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:55:58] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:58] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"2"}}
+[02:55:58] [INFO] تم جلب المهام الفرعية {"task_id":"2","count":3}
+[02:55:58] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:58] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:55:58] [INFO] تم جلب التقارير {"task_id":"2","count":1}
+[02:55:58] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:58] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:55:58] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:58] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":0}
+[02:55:58] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"1"}}
+[02:55:58] [INFO] تم جلب التقارير {"task_id":"1","count":0}
+[02:55:59] [INFO] بدء معالجة طلب المهام الفرعية {"method":"PUT","request_data":"{\"id\":2,\"completed\":false}"}
+[02:55:59] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                UPDATE subtasks \r\n                SET completed = :completed\r\n                WHERE id = :id\r\n            ","params":{":id":2,":completed":0}}
+[02:55:59] [INFO] تم تحديث حالة المهمة الفرعية {"id":2,"completed":false}
+[02:55:59] [INFO] بدء معالجة الطلب {"method":"GET","request_data":"","request_headers":{"Host":"reports.com","Connection":"keep-alive","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","X-Requested-With":"XMLHttpRequest","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:55:59] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"SELECT * FROM tasks ORDER BY created_at DESC","params":[]}
+[02:55:59] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
+[02:55:59] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
+[02:55:59] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:55:59] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:59] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"2"}}
+[02:55:59] [INFO] تم جلب المهام الفرعية {"task_id":"2","count":3}
+[02:55:59] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:59] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:55:59] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:55:59] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:55:59] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":0}
+[02:55:59] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:55:59] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"1"}}
+[02:55:59] [INFO] تم جلب التقارير {"task_id":"1","count":0}
+[02:56:00] [INFO] بدء معالجة طلب المهام الفرعية {"method":"PUT","request_data":"{\"id\":3,\"completed\":false}"}
+[02:56:00] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                UPDATE subtasks \r\n                SET completed = :completed\r\n                WHERE id = :id\r\n            ","params":{":id":3,":completed":0}}
+[02:56:00] [INFO] تم تحديث حالة المهمة الفرعية {"id":3,"completed":false}
+[02:56:00] [INFO] بدء معالجة الطلب {"method":"GET","request_data":"","request_headers":{"Host":"reports.com","Connection":"keep-alive","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","X-Requested-With":"XMLHttpRequest","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:56:00] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"SELECT * FROM tasks ORDER BY created_at DESC","params":[]}
+[02:56:00] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
+[02:56:00] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
+[02:56:00] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:56:00] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:56:00] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"2"}}
+[02:56:00] [INFO] تم جلب المهام الفرعية {"task_id":"2","count":3}
+[02:56:00] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:56:00] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:56:00] [INFO] تم جلب التقارير {"task_id":"2","count":1}
+[02:56:00] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:56:00] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:56:00] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":0}
+[02:56:00] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:56:00] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"1"}}
+[02:56:00] [INFO] تم جلب التقارير {"task_id":"1","count":0}
+[02:56:15] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:56:15] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:56:15] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":0}
+[02:56:21] [INFO] بدء معالجة طلب المهام الفرعية {"method":"POST","request_data":"{\"task_id\":1,\"title\":\"12\"}"}
+[02:56:21] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                INSERT INTO subtasks (task_id, title)\r\n                VALUES (:task_id, :title)\r\n            ","params":{":task_id":1,":title":"12"}}
+[02:56:21] [INFO] تم إضافة مهمة فرعية جديدة {"id":4,"task_id":1}
+[02:56:21] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:56:21] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:56:21] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":1}
+[02:56:21] [INFO] بدء معالجة الطلب {"method":"GET","request_data":"","request_headers":{"Host":"reports.com","Connection":"keep-alive","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","X-Requested-With":"XMLHttpRequest","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:56:21] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"SELECT * FROM tasks ORDER BY created_at DESC","params":[]}
+[02:56:21] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
+[02:56:21] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
+[02:56:21] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:56:21] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:56:21] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"2"}}
+[02:56:21] [INFO] تم جلب المهام الفرعية {"task_id":"2","count":3}
+[02:56:21] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:56:21] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:56:21] [INFO] تم جلب التقارير {"task_id":"2","count":1}
+[02:56:21] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:56:21] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:56:21] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":1}
+[02:56:21] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:56:21] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"1"}}
+[02:56:21] [INFO] تم جلب التقارير {"task_id":"1","count":0}
+[02:56:23] [INFO] بدء معالجة طلب المهام الفرعية {"method":"POST","request_data":"{\"task_id\":1,\"title\":\"2\"}"}
+[02:56:23] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                INSERT INTO subtasks (task_id, title)\r\n                VALUES (:task_id, :title)\r\n            ","params":{":task_id":1,":title":"2"}}
+[02:56:23] [INFO] تم إضافة مهمة فرعية جديدة {"id":5,"task_id":1}
+[02:56:23] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:56:23] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:56:23] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":2}
+[02:56:23] [INFO] بدء معالجة الطلب {"method":"GET","request_data":"","request_headers":{"Host":"reports.com","Connection":"keep-alive","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","X-Requested-With":"XMLHttpRequest","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:56:23] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"SELECT * FROM tasks ORDER BY created_at DESC","params":[]}
+[02:56:23] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
+[02:56:23] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
+[02:56:23] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:56:23] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:56:23] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"2"}}
+[02:56:23] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:56:23] [INFO] تم جلب المهام الفرعية {"task_id":"2","count":3}
+[02:56:23] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:56:23] [INFO] تم جلب التقارير {"task_id":"2","count":1}
+[02:56:23] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:56:23] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:56:23] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":2}
+[02:56:23] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:56:23] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"1"}}
+[02:56:23] [INFO] تم جلب التقارير {"task_id":"1","count":0}
+[02:56:25] [INFO] بدء معالجة طلب المهام الفرعية {"method":"PUT","request_data":"{\"id\":4,\"completed\":true}"}
+[02:56:25] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                UPDATE subtasks \r\n                SET completed = :completed\r\n                WHERE id = :id\r\n            ","params":{":id":4,":completed":1}}
+[02:56:25] [INFO] تم تحديث حالة المهمة الفرعية {"id":4,"completed":true}
+[02:56:25] [INFO] بدء معالجة الطلب {"method":"GET","request_data":"","request_headers":{"Host":"reports.com","Connection":"keep-alive","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","X-Requested-With":"XMLHttpRequest","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:56:25] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"SELECT * FROM tasks ORDER BY created_at DESC","params":[]}
+[02:56:25] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
+[02:56:25] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
+[02:56:25] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:56:25] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:56:25] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"2"}}
+[02:56:25] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:56:25] [INFO] تم جلب المهام الفرعية {"task_id":"2","count":3}
+[02:56:25] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:56:25] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:56:25] [INFO] تم جلب التقارير {"task_id":"2","count":1}
+[02:56:25] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:56:25] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":2}
+[02:56:25] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"1"}}
+[02:56:25] [INFO] تم جلب التقارير {"task_id":"1","count":0}
+[02:56:26] [INFO] بدء معالجة طلب المهام الفرعية {"method":"PUT","request_data":"{\"id\":5,\"completed\":true}"}
+[02:56:26] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                UPDATE subtasks \r\n                SET completed = :completed\r\n                WHERE id = :id\r\n            ","params":{":id":5,":completed":1}}
+[02:56:26] [INFO] تم تحديث حالة المهمة الفرعية {"id":5,"completed":true}
+[02:56:26] [INFO] بدء معالجة الطلب {"method":"GET","request_data":"","request_headers":{"Host":"reports.com","Connection":"keep-alive","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","X-Requested-With":"XMLHttpRequest","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:56:26] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"SELECT * FROM tasks ORDER BY created_at DESC","params":[]}
+[02:56:26] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
+[02:56:26] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
+[02:56:26] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:56:26] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:56:26] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"2"}}
+[02:56:26] [INFO] تم جلب المهام الفرعية {"task_id":"2","count":3}
+[02:56:26] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:56:26] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:56:26] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:56:26] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:56:26] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:56:26] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":2}
+[02:56:26] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"1"}}
+[02:56:26] [INFO] تم جلب التقارير {"task_id":"1","count":0}
+[02:56:28] [INFO] بدء معالجة الطلب {"method":"GET","request_data":"","request_headers":{"Host":"reports.com","Connection":"keep-alive","User-Agent":"Mozilla\/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit\/537.36 (KHTML, like Gecko) Chrome\/131.0.0.0 Safari\/537.36","Accept":"*\/*","X-Requested-With":"XMLHttpRequest","Referer":"http:\/\/reports.com\/","Accept-Encoding":"gzip, deflate","Accept-Language":"en-US,en;q=0.9,ar;q=0.8","Cookie":"PHPSESSID=jvcgb63mmip8dnm70277k4g8p4"}}
+[02:56:28] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"SELECT * FROM tasks ORDER BY created_at DESC","params":[]}
+[02:56:28] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":2}}
+[02:56:28] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                    SELECT COUNT(*) as total,\r\n                           SUM(CASE WHEN completed = 1 THEN 1 ELSE 0 END) as completed\r\n                    FROM subtasks\r\n                    WHERE task_id = :task_id\r\n                ","params":{":task_id":1}}
+[02:56:28] [INFO] تم جلب المهام بنجاح {"count":2}
+[02:56:28] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:56:28] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:56:28] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"2"}}
+[02:56:28] [INFO] تم جلب المهام الفرعية {"task_id":"2","count":3}
+[02:56:28] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"2"}}
+[02:56:28] [INFO] تم جلب التقارير {"task_id":"2","count":1}
+[02:56:28] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:56:28] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:56:28] [INFO] بدء معالجة طلب التقارير {"method":"GET","request_data":""}
+[02:56:28] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":2}
+[02:56:28] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM reports \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at DESC\r\n            ","params":{":task_id":"1"}}
+[02:56:28] [INFO] تم جلب التقارير {"task_id":"1","count":0}
+[02:56:36] [INFO] بدء معالجة طلب المهام الفرعية {"method":"GET","request_data":""}
+[02:56:36] [DEBUG] تم تنفيذ الاستعلام بنجاح {"sql":"\r\n                SELECT * FROM subtasks \r\n                WHERE task_id = :task_id \r\n                ORDER BY created_at ASC\r\n            ","params":{":task_id":"1"}}
+[02:56:36] [INFO] تم جلب المهام الفرعية {"task_id":"1","count":2}

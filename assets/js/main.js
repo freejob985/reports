@@ -154,17 +154,21 @@ function renderTasks() {
     }
 
     tasks.forEach(task => {
+        const statusBadgeClass = {
+            'pending': 'bg-warning',
+            'in-progress': 'bg-info',
+            'completed': 'bg-success',
+            'cancelled': 'bg-danger'
+        }[task.status] || 'bg-secondary';
+
         const taskElement = $(`
-            <div class="list-group-item task-status-${task.status}">
-                <div class="d-flex justify-content-between align-items-center">
-                    <h5 class="mb-1">${escapeHtml(task.title)}</h5>
+            <div class="card mb-4 task-card">
+                <div class="card-header d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0">
+                        ${escapeHtml(task.title)}
+                        <span class="badge ${statusBadgeClass} ms-2">${getStatusText(task.status)}</span>
+                    </h5>
                     <div class="btn-group">
-                        <button class="btn btn-sm btn-outline-info" onclick="showSubtasksModal(${task.id})" title="المهام الفرعية">
-                            <i class="fas fa-tasks"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-success" onclick="showReportsModal(${task.id})" title="التقارير">
-                            <i class="fas fa-file-alt"></i>
-                        </button>
                         <button class="btn btn-sm btn-outline-primary" onclick="editTask(${task.id})" title="تحرير">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -173,23 +177,56 @@ function renderTasks() {
                         </button>
                     </div>
                 </div>
-                <p class="mb-1">${escapeHtml(task.description || '')}</p>
-                <div class="progress mt-2" style="height: 10px;">
-                    <div class="progress-bar" role="progressbar" 
-                         style="width: ${task.progress || 0}%" 
-                         aria-valuenow="${task.progress || 0}" 
-                         aria-valuemin="0" 
-                         aria-valuemax="100">
+                <div class="card-body">
+                    <!-- وصف المهمة -->
+                    <p class="card-text">${escapeHtml(task.description || '')}</p>
+
+                    <!-- المهام الفرعية -->
+                    <div class="subtasks-section mb-3">
+                        <h6 class="d-flex justify-content-between align-items-center">
+                            <span>المهام الفرعية</span>
+                            <button class="btn btn-sm btn-outline-info" onclick="showSubtasksModal(${task.id})">
+                                <i class="fas fa-plus"></i> إضافة مهمة فرعية
+                            </button>
+                        </h6>
+                        <div id="subtasks-list-${task.id}" class="list-group mt-2">
+                            <!-- سيتم تحميل المهام الفرعية هنا -->
+                        </div>
+                    </div>
+
+                    <!-- التقارير -->
+                    <div class="reports-section mb-3">
+                        <h6 class="d-flex justify-content-between align-items-center">
+                            <span>التقارير</span>
+                            <button class="btn btn-sm btn-outline-success" onclick="showReportsModal(${task.id})">
+                                <i class="fas fa-plus"></i> إضافة تقرير
+                            </button>
+                        </h6>
+                        <div id="reports-list-${task.id}" class="mt-2">
+                            <!-- سيتم تحميل التقارير هنا -->
+                        </div>
+                    </div>
+
+                    <!-- شريط التقدم -->
+                    <div class="progress" style="height: 15px;">
+                        <div class="progress-bar ${statusBadgeClass}" 
+                             role="progressbar" 
+                             style="width: ${task.progress || 0}%" 
+                             aria-valuenow="${task.progress || 0}" 
+                             aria-valuemin="0" 
+                             aria-valuemax="100">
+                            ${Math.round(task.progress || 0)}%
+                        </div>
                     </div>
                 </div>
-                <small class="text-muted">
-                    الحالة: ${getStatusText(task.status)} | 
-                    المهام الفرعية: ${task.total_subtasks || 0} | 
-                    التقارير: ${task.reports_count || 0}
-                </small>
             </div>
         `);
+
         tasksList.append(taskElement);
+
+        // تحميل المهام الفرعية والتقارير لهذه المهمة
+        loadTaskSubtasks(task.id);
+        loadTaskReports(task.id);
     });
 }
 
@@ -237,4 +274,87 @@ function updateOverallProgress() {
     } else {
         progressBar.removeClass().addClass('progress-bar bg-danger');
     }
+}
+
+// دالة تحميل المهام الفرعية لمهمة محددة
+function loadTaskSubtasks(taskId) {
+    $.ajax({
+        url: `api/subtasks.php?task_id=${taskId}`,
+        method: 'GET',
+        success: function(response) {
+            if (response.success) {
+                renderTaskSubtasks(taskId, response.subtasks);
+            }
+        }
+    });
+}
+
+// دالة تحميل التقارير لمهمة محددة
+function loadTaskReports(taskId) {
+    $.ajax({
+        url: `api/reports.php?task_id=${taskId}`,
+        method: 'GET',
+        success: function(response) {
+            if (response.success) {
+                renderTaskReports(taskId, response.reports);
+            }
+        }
+    });
+}
+
+// دالة عرض المهام الفرعية
+function renderTaskSubtasks(taskId, subtasks) {
+    const subtasksList = $(`#subtasks-list-${taskId}`);
+    subtasksList.empty();
+
+    if (subtasks.length === 0) {
+        subtasksList.append('<div class="text-muted small">لا توجد مهام فرعية</div>');
+        return;
+    }
+
+    subtasks.forEach(subtask => {
+        const element = $(`
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" 
+                           ${subtask.completed ? 'checked' : ''}
+                           onchange="toggleSubtask(${subtask.id}, this.checked)">
+                    <label class="form-check-label">${escapeHtml(subtask.title)}</label>
+                </div>
+                <button class="btn btn-sm btn-outline-danger" onclick="deleteSubtask(${subtask.id})">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `);
+        subtasksList.append(element);
+    });
+}
+
+// دالة عرض التقارير
+function renderTaskReports(taskId, reports) {
+    const reportsList = $(`#reports-list-${taskId}`);
+    reportsList.empty();
+
+    if (reports.length === 0) {
+        reportsList.append('<div class="text-muted small">لا توجد تقارير</div>');
+        return;
+    }
+
+    reports.forEach(report => {
+        const reportDate = new Date(report.created_at).toLocaleString('ar-SA');
+        const element = $(`
+            <div class="card mb-2">
+                <div class="card-header d-flex justify-content-between align-items-center py-1">
+                    <small class="text-muted">${reportDate}</small>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteReport(${report.id})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+                <div class="card-body py-2">
+                    ${report.html_content}
+                </div>
+            </div>
+        `);
+        reportsList.append(element);
+    });
 }

@@ -86,6 +86,35 @@ try {
             ]);
             break;
 
+        case 'PUT':
+            $input = json_decode(file_get_contents('php://input'), true);
+            
+            if (!isset($_GET['id'])) {
+                throw new Exception('معرف التقرير مطلوب للتحديث');
+            }
+
+            if (!isset($input['content']) || !isset($input['html_content'])) {
+                throw new Exception('محتوى التقرير مطلوب');
+            }
+
+            $result = $db->query('
+                UPDATE reports 
+                SET content = :content,
+                    html_content = :html_content,
+                    updated_at = CURRENT_TIMESTAMP
+                WHERE id = :id
+            ', [
+                ':id' => $_GET['id'],
+                ':content' => $input['content'],
+                ':html_content' => $input['html_content']
+            ]);
+
+            echo json_encode([
+                'success' => true,
+                'message' => 'تم تحديث التقرير بنجاح'
+            ]);
+            break;
+
         default:
             throw new Exception('طريقة الطلب غير مدعومة');
     }

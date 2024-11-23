@@ -7,6 +7,7 @@
 (function() {
     let currentReportTaskId = null;
     let editor = null;
+    let currentReportId = null;
 
     // تصدير الدوال للنطاق العام
     window.showReportsModal = function(taskId) {
@@ -25,9 +26,14 @@
             return;
         }
 
+        const method = currentReportId ? 'PUT' : 'POST';
+        const url = currentReportId ?
+            `api/reports.php?id=${currentReportId}` :
+            'api/reports.php';
+
         $.ajax({
-            url: 'api/reports.php',
-            method: 'POST',
+            url: url,
+            method: method,
             contentType: 'application/json',
             data: JSON.stringify({
                 task_id: currentReportTaskId,
@@ -38,16 +44,16 @@
                 if (response.success) {
                     editor.setContent('');
                     $('#reportModal').modal('hide');
-                    toastr.success('تم إضافة التقرير بنجاح');
-                    // تحديث عرض التقارير في الصفحة الرئيسية
+                    toastr.success(currentReportId ? 'تم تحديث التقرير بنجاح' : 'تم إضافة التقرير بنجاح');
                     loadTaskReports(currentReportTaskId);
+                    currentReportId = null;
                 } else {
-                    toastr.error(response.message || 'حدث خطأ أثناء إضافة التقرير');
+                    toastr.error(response.message || 'حدث خطأ أثناء حفظ التقرير');
                 }
             },
             error: function(xhr, status, error) {
-                console.error('Error adding report:', error);
-                toastr.error('حدث خطأ أثناء إضافة التقرير');
+                console.error('Error saving report:', error);
+                toastr.error('حدث خطأ أثناء حفظ التقرير');
             }
         });
     };
@@ -138,7 +144,29 @@
         });
     };
 
-    // تصدير دالة عرض التقارير للنطاق العام
+    // إضافة دالة حساب الوقت منذ كتابة التقرير
+    function timeAgo(date) {
+        const seconds = Math.floor((new Date() - new Date(date)) / 1000);
+
+        let interval = seconds / 31536000;
+        if (interval > 1) return Math.floor(interval) + ' سنة';
+
+        interval = seconds / 2592000;
+        if (interval > 1) return Math.floor(interval) + ' شهر';
+
+        interval = seconds / 86400;
+        if (interval > 1) return Math.floor(interval) + ' يوم';
+
+        interval = seconds / 3600;
+        if (interval > 1) return Math.floor(interval) + ' ساعة';
+
+        interval = seconds / 60;
+        if (interval > 1) return Math.floor(interval) + ' دقيقة';
+
+        return Math.floor(seconds) + ' ثانية';
+    }
+
+    // تعديل دالة renderTaskReports
     window.renderTaskReports = function(taskId, reports) {
         const reportsList = $(`#reports-list-${taskId}`);
         reportsList.empty();
@@ -149,14 +177,22 @@
         }
 
         reports.forEach(report => {
-            const reportDate = new Date(report.created_at).toLocaleString('ar-SA');
+            const timeAgoText = timeAgo(report.created_at);
             const reportElement = $(`
-                <div class="card mb-2">
+                <div class="card mb-2 report-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <small class="text-muted">${reportDate}</small>
-                        <button class="btn btn-sm btn-outline-danger" onclick="deleteReport(${report.id}, ${taskId})">
-                            <i class="fas fa-trash"></i>
-                        </button>
+                        <div>
+                            <small class="text-muted">منذ ${timeAgoText}</small>
+                            <small class="text-muted ms-2">${new Date(report.created_at).toLocaleString('ar-SA')}</small>
+                        </div>
+                        <div class="btn-group">
+                            <button class="btn btn-sm btn-outline-primary me-2" onclick="editReport(${report.id}, ${taskId})">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" onclick="deleteReport(${report.id}, ${taskId})">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
                     </div>
                     <div class="card-body">
                         ${report.html_content}
@@ -164,6 +200,32 @@
                 </div>
             `);
             reportsList.append(reportElement);
+        });
+
+        // تحديث الوقت كل دقيقة
+        setInterval(() => {
+            reports.forEach(report => {
+                const timeAgoText = timeAgo(report.created_at);
+                $(`[data-report-id="${report.id}"] .time-ago`).text(`منذ ${timeAgoText}`);
+            });
+        }, 60000);
+    };
+
+    // إضافة دالة تعديل التقرير
+    window.editReport = function(reportId, taskId) {
+        $.ajax({
+            url: `api/reports.php?id=${reportId}`,
+            method: 'GET',
+            success: function(response) {
+                if (response.success && response.report) {
+                    const report = response.report;
+                    editor.setContent(report.html_content);
+                    currentReportTaskId = taskId;
+                    currentReportId = reportId;
+                    $('#reportModal .modal-title').text('تعديل التقرير');
+                    $('#reportModal').modal('show');
+                }
+            }
         });
     };
 })();

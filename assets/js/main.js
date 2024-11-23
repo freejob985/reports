@@ -50,8 +50,72 @@ function editTask(taskId) {
     $('#taskDescription').val(task.description);
     $('#taskStatus').val(task.status);
 
+    // تحديث عنوان النموذج
+    $('.modal-title').text('تعديل المهمة');
+
+    // إضافة أزرار تغيير الحالة السريع
+    const quickStatusButtons = `
+        <div class="mb-3">
+            <label class="form-label">تغيير سريع للحالة:</label>
+            <div class="btn-group w-100">
+                <button type="button" class="btn btn-outline-warning" onclick="quickUpdateStatus(${taskId}, 'pending')">
+                    قيد الانتظار
+                </button>
+                <button type="button" class="btn btn-outline-info" onclick="quickUpdateStatus(${taskId}, 'in-progress')">
+                    قيد التنفيذ
+                </button>
+                <button type="button" class="btn btn-outline-success" onclick="quickUpdateStatus(${taskId}, 'completed')">
+                    مكتملة
+                </button>
+                <button type="button" class="btn btn-outline-danger" onclick="quickUpdateStatus(${taskId}, 'cancelled')">
+                    ملغاة
+                </button>
+            </div>
+        </div>
+    `;
+
+    $('#taskForm').prepend(quickStatusButtons);
+
     // عرض النموذج
     $('#taskModal').modal('show');
+}
+
+/**
+ * تحديث سريع لحالة المهمة
+ * @param {number} taskId - معرف المهمة
+ * @param {string} status - الحالة الجديدة
+ */
+function quickUpdateStatus(taskId, status) {
+    const task = tasks.find(t => t.id === taskId);
+    if (!task) {
+        toastr.error('المهمة غير موجودة');
+        return;
+    }
+
+    $.ajax({
+        url: 'api/tasks.php',
+        method: 'PUT',
+        contentType: 'application/json',
+        data: JSON.stringify({
+            id: taskId,
+            title: task.title,
+            description: task.description,
+            status: status
+        }),
+        success: function(response) {
+            if (response.success) {
+                $('#taskModal').modal('hide');
+                loadTasks();
+                toastr.success('تم تحديث حالة المهمة بنجاح');
+            } else {
+                toastr.error(response.message || 'حدث خطأ أثناء تحديث حالة المهمة');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error updating task status:', error);
+            toastr.error('حدث خطأ أثناء تحديث حالة المهمة');
+        }
+    });
 }
 
 /**
@@ -131,13 +195,13 @@ function saveTask() {
             if (response.success) {
                 $('#taskModal').modal('hide');
                 loadTasks();
-                toastr.success(response.message || 'تم حفظ المهمة بنجاح');
+                toastr.success(taskData.id ? 'تم تحديث المهمة بنجاح' : 'تم إضافة المهمة بنجاح');
             } else {
                 toastr.error(response.message || 'حدث خطأ أثناء حفظ المهمة');
             }
         },
         error: function(xhr, status, error) {
-            console.error('Error saving task:', xhr.responseText);
+            console.error('Error saving task:', error);
             toastr.error('حدث خطأ أثناء حفظ المهمة');
         }
     });
@@ -166,7 +230,20 @@ function renderTasks() {
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
                         ${escapeHtml(task.title)}
-                        <span class="badge ${statusBadgeClass} ms-2">${getStatusText(task.status)}</span>
+                        <div class="dropdown d-inline-block ms-2">
+                            <span class="badge ${statusBadgeClass} dropdown-toggle" 
+                                  role="button" 
+                                  data-bs-toggle="dropdown">
+                                ${getStatusText(task.status)}
+                            </span>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="#" onclick="quickUpdateStatus(${task.id}, 'pending')">قيد الانتظار</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="quickUpdateStatus(${task.id}, 'in-progress')">قيد التنفيذ</a></li>
+                                <li><a class="dropdown-item" href="#" onclick="quickUpdateStatus(${task.id}, 'completed')">مكتملة</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item text-danger" href="#" onclick="quickUpdateStatus(${task.id}, 'cancelled')">ملغاة</a></li>
+                            </ul>
+                        </div>
                     </h5>
                     <div class="btn-group">
                         <button class="btn btn-sm btn-outline-primary" onclick="editTask(${task.id})" title="تحرير">

@@ -18,6 +18,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Tajawal:wght@200;300;400;500;700;800;900&display=swap" rel="stylesheet">
     
+    <!-- إضافة Favicon -->
+    <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+    
     <style>
         :root {
             --primary-gradient: linear-gradient(135deg, #2196F3 0%, #4CAF50 100%);
@@ -237,6 +240,30 @@
 
         .subtask-drop-zone.active {
             display: block;
+        }
+
+        /* تنسيق السكرول */
+        ::-webkit-scrollbar {
+            width: 10px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: linear-gradient(135deg, #2196F3 0%, #4CAF50 100%);
+            border-radius: 5px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: linear-gradient(135deg, #1976D2 0%, #388E3C 100%);
+        }
+
+        /* تنعيم السكرول */
+        html {
+            scroll-behavior: smooth;
         }
     </style>
 </head>

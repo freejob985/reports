@@ -477,6 +477,67 @@
             background: rgba(255,255,255,0.2);
             transform: translateX(-5px);
         }
+
+        /* تنسيقات شارات التقارير */
+        .report-badge {
+            font-size: 0.9rem;
+            padding: 0.4em 0.8em;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+            margin: 0 0.2rem;
+        }
+
+        .report-badge:hover {
+            transform: scale(1.1);
+        }
+
+        .report-badge.bg-info {
+            background: linear-gradient(135deg, #03a9f4 0%, #00bcd4 100%) !important;
+            color: white;
+        }
+
+        .report-badge.bg-primary {
+            background: var(--primary-gradient) !important;
+        }
+
+        .report-badge.bg-danger {
+            background: var(--danger-gradient) !important;
+        }
+
+        /* تنسيقات أزرار التقارير */
+        .report-actions .btn {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.375rem 0.75rem;
+            border-radius: 50px;
+            transition: all 0.3s ease;
+        }
+
+        .report-actions .btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .report-actions .btn .badge {
+            margin-left: 0.5rem;
+            font-size: 0.75rem;
+            padding: 0.25em 0.6em;
+        }
+
+        /* تحسينات إضافية للشارات */
+        .badge {
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
+
+        .badge.with-icon {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+
+        .badge.with-icon i {
+            font-size: 0.85em;
+        }
     </style>
 </head>
 <body>
@@ -635,7 +696,7 @@
                         </div>
                     </div>
                     <div id="subtasksList" class="list-group">
-                        <!-- سيتم إضافة المهام الفرعية هنا -->
+                        <!-- سيتم إضافة المهام الفرعية هن�� -->
                     </div>
                 </div>
             </div>

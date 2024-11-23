@@ -162,7 +162,7 @@ function renderTasks() {
         }[task.status] || 'bg-secondary';
 
         const taskElement = $(`
-            <div class="card mb-4 task-card">
+            <div class="card mb-4 task-card" data-task-id="${task.id}">
                 <div class="card-header d-flex justify-content-between align-items-center">
                     <h5 class="mb-0">
                         ${escapeHtml(task.title)}
@@ -185,7 +185,7 @@ function renderTasks() {
                     <div class="subtasks-section mb-3">
                         <h6 class="mb-3">المهام الفرعية</h6>
                         
-                        <!-- تحديث نموذج إضافة مهمة فرعية -->
+                        <!-- نموذج إضافة مهمة فرعية -->
                         <div class="input-group mb-3">
                             <input type="text" 
                                    class="form-control subtask-input" 
@@ -204,29 +204,9 @@ function renderTasks() {
                         </div>
                     </div>
 
-                    <!-- التقارير -->
-                    <div class="reports-section mb-3">
-                        <h6 class="d-flex justify-content-between align-items-center">
-                            <span>التقارير</span>
-                            <button class="btn btn-sm btn-outline-success" onclick="showReportsModal(${task.id})">
-                                <i class="fas fa-plus"></i> إضافة تقرير
-                            </button>
-                        </h6>
-                        <div id="reports-list-${task.id}" class="mt-2">
-                            <!-- سيتم تحميل التقارير هنا -->
-                        </div>
-                    </div>
-
                     <!-- شريط التقدم -->
-                    <div class="progress" style="height: 15px;">
-                        <div class="progress-bar ${statusBadgeClass}" 
-                             role="progressbar" 
-                             style="width: ${task.progress || 0}%" 
-                             aria-valuenow="${task.progress || 0}" 
-                             aria-valuemin="0" 
-                             aria-valuemax="100">
-                            ${Math.round(task.progress || 0)}%
-                        </div>
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">0%</div>
                     </div>
                 </div>
             </div>
@@ -234,7 +214,6 @@ function renderTasks() {
 
         tasksList.append(taskElement);
         loadTaskSubtasks(task.id);
-        loadTaskReports(task.id);
     });
 }
 
@@ -354,6 +333,27 @@ function renderTaskSubtasks(taskId, subtasks) {
 }
 
 /**
+ * تحديث لون شريط التقدم بناءً على النسبة
+ * @param {jQuery} progressBar - عنصر شريط التقدم
+ * @param {number} progress - نسبة التقدم
+ */
+function updateProgressBarColor(progressBar, progress) {
+    // إزالة جميع الألوان السابقة
+    progressBar.removeClass('bg-danger bg-warning bg-info bg-success');
+
+    // إضافة اللون المناسب بناءً على نسبة التقدم
+    if (progress >= 75) {
+        progressBar.addClass('bg-success');
+    } else if (progress >= 50) {
+        progressBar.addClass('bg-info');
+    } else if (progress >= 25) {
+        progressBar.addClass('bg-warning');
+    } else {
+        progressBar.addClass('bg-danger');
+    }
+}
+
+/**
  * تحديث تقدم المهمة
  * @param {number} taskId - معرف المهمة
  * @param {Array} subtasks - قائمة المهام الفرعية
@@ -365,13 +365,13 @@ function updateTaskProgress(taskId, subtasks) {
 
     const progressBar = $(`.task-card[data-task-id="${taskId}"] .progress-bar`);
 
-    // استخدام CSS transition بدلاً من jQuery animate
+    // تحديث عرض شريط التقدم بشكل متحرك
     progressBar.css({
         'width': `${progress}%`,
         'transition': 'width 0.4s ease-in-out'
     }).text(Math.round(progress) + '%');
 
-    // تحديث اللون بناءً على التقدم
+    // تحديث لون شريط التقدم
     updateProgressBarColor(progressBar, progress);
 }
 
@@ -428,7 +428,7 @@ function toggleSubtask(subtaskId, completed, taskId) {
     });
 }
 
-// دالة عرض التقارير
+// دالة عرض التقاري��
 function renderTaskReports(taskId, reports) {
     const reportsList = $(`#reports-list-${taskId}`);
     reportsList.empty();
@@ -464,6 +464,7 @@ function handleSubtaskKeyPress(event, taskId) {
  * @param {number} taskId - معرف المهمة الرئيسية
  */
 function addSubtask(taskId) {
+    // تحديد حقل الإدخال باستخدام معرف المهمة
     const input = $(`.subtask-input[data-task-id="${taskId}"]`);
     const title = input.val().trim();
 
@@ -471,10 +472,15 @@ function addSubtask(taskId) {
     input.removeClass('is-invalid');
     input.parent().find('.error-message').remove();
 
+    // التحقق من القيمة المدخلة
     if (!title) {
+        input.addClass('is-invalid');
+        input.parent().append('<div class="error-message">يرجى إدخال عنوان المهمة الفرعية</div>');
+        input.focus();
         return;
     }
 
+    // إرسال طلب إضافة المهمة الفرعية
     $.ajax({
         url: 'api/subtasks.php',
         method: 'POST',
@@ -489,7 +495,7 @@ function addSubtask(taskId) {
         },
         success: function(response) {
             if (response.success) {
-                input.val('');
+                input.val('').removeClass('is-invalid');
                 loadTaskSubtasks(taskId);
                 toastr.success('تم إضافة المهمة الفرعية بنجاح');
             } else {

@@ -70,37 +70,7 @@ function renderSubtasks(subtasks) {
 /**
  * إضافة مهمة فرعية جديدة
  */
-function addSubtask() {
-    const title = $('#newSubtaskTitle').val().trim();
-    if (!title) {
-        toastr.error('يرجى إدخال عنوان المهمة الفرعية');
-        return;
-    }
 
-    $.ajax({
-        url: 'api/subtasks.php',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({
-            task_id: currentTaskId,
-            title: title
-        }),
-        success: function(response) {
-            if (response.success) {
-                $('#newSubtaskTitle').val('');
-                loadSubtasks();
-                loadTasks(); // تحديث التقدم في المهمة الرئيسية
-                toastr.success('تم إضافة المهمة الفرعية بنجاح');
-            } else {
-                toastr.error(response.message || 'حدث خطأ أثناء إضافة المهمة الفرعية');
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('Error adding subtask:', error);
-            toastr.error('حدث خطأ أثناء إضافة المهمة الفرعية');
-        }
-    });
-}
 
 /**
  * تحديث حالة المهمة الفرعية

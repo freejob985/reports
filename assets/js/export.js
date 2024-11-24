@@ -18,7 +18,7 @@ const ExportManager = {
             },
             jsPDF: {
                 unit: 'mm',
-                format: [297, 600],
+                format: [297, 1500],
                 orientation: 'portrait'
             }
         },
@@ -145,9 +145,14 @@ const ExportManager = {
 
             return `
             <div class="report-header">
-                <h1>تقرير مشروع: ${project.name}</h1>
+                <h1>تقرير</h1>
+                <h2>${project.name}</h2>
                 <div class="report-meta">
-                    <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}</p>
+                    <p>تاريخ التقرير: ${new Date().toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: '2-digit',
+                        day: '2-digit'
+                    })}</p>
                     <p>عدد المهام: ${tasks.length}</p>
                 </div>
             </div>
@@ -356,23 +361,32 @@ const ExportManager = {
             }
 
             .report-header h1 {
-                font-size: 2.5rem;
+                font-size: 2.8rem;
+                margin-bottom: 1rem;
+                color: white;
+            }
+
+            .report-header h2 {
+                font-size: 2rem;
                 margin-bottom: 1.5rem;
+                color: white;
+                opacity: 0.9;
             }
 
             .report-meta {
-                color: rgba(255,255,255,0.9);
-                font-size: 14px;
+                color: white;
+                font-size: 16px;
                 display: flex;
                 justify-content: space-around;
-                margin-top: 1.5rem;
+                margin-top: 2rem;
             }
 
             .report-meta p {
                 background: rgba(255,255,255,0.1);
-                padding: 0.5rem 1rem;
+                padding: 0.7rem 1.5rem;
                 border-radius: 20px;
                 margin: 0;
+                color: white;
             }
 
             .task-card {
@@ -493,40 +507,113 @@ const ExportManager = {
             }
 
             .progress-summary {
-                margin-top: 30px;
-                padding: 20px;
-                background: #f8f9fa;
-                border-radius: 8px;
+                margin: 40px 0;
+                padding: 30px;
+                background: #ffffff;
+                border-radius: 15px;
+                box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+                border: 1px solid #e0e0e0;
             }
 
             .progress-stats {
                 display: grid;
                 grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-                gap: 15px;
-                margin-bottom: 20px;
+                gap: 20px;
+                margin-bottom: 30px;
             }
 
             .stat-item {
-                background: white;
-                padding: 10px;
-                border-radius: 5px;
+                background: #f8f9fa;
+                padding: 20px;
+                border-radius: 12px;
                 text-align: center;
+                border: 1px solid #eee;
+                transition: transform 0.2s ease;
+            }
+
+            .stat-item:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+            }
+
+            .stat-label {
+                display: block;
+                color: #666;
+                font-size: 0.9rem;
+                margin-bottom: 8px;
+            }
+
+            .stat-value {
+                display: block;
+                font-size: 1.5rem;
+                font-weight: bold;
+                color: #2196F3;
             }
 
             .progress-bar {
-                height: 20px;
-                background: #eee;
-                border-radius: 10px;
+                height: 25px;
+                background: #f0f0f0;
+                border-radius: 15px;
                 overflow: hidden;
+                margin: 20px 0;
+                box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+                position: relative;
             }
 
             .progress-fill {
                 height: 100%;
-                background: linear-gradient(45deg, #4CAF50, #45a049);
+                background: linear-gradient(45deg, #2196F3, #00BCD4);
+                border-radius: 15px;
+                transition: width 1s ease-in-out;
+                position: relative;
+                display: flex;
+                align-items: center;
+                justify-content: center;
                 color: white;
+                font-weight: bold;
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+                box-shadow: 0 2px 4px rgba(33, 150, 243, 0.3);
+            }
+
+            .progress-fill::after {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background: linear-gradient(
+                    45deg,
+                    rgba(255,255,255,0.2) 25%,
+                    transparent 25%,
+                    transparent 50%,
+                    rgba(255,255,255,0.2) 50%,
+                    rgba(255,255,255,0.2) 75%,
+                    transparent 75%,
+                    transparent
+                );
+                background-size: 25px 25px;
+                animation: progressStripes 1s linear infinite;
+                border-radius: 15px;
+            }
+
+            @keyframes progressStripes {
+                0% {
+                    background-position: 0 0;
+                }
+                100% {
+                    background-position: 25px 0;
+                }
+            }
+
+            .progress-label {
+                position: absolute;
+                width: 100%;
                 text-align: center;
-                line-height: 20px;
-                transition: width 0.3s ease;
+                color: white;
+                font-weight: bold;
+                text-shadow: 1px 1px 2px rgba(0,0,0,0.2);
+                z-index: 1;
             }
 
             @media print {

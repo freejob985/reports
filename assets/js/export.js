@@ -172,12 +172,26 @@ const ExportManager = {
         generateReportContent(data) {
             const { project, tasks } = data;
 
+            // تنسيق التاريخ الميلادي باللغة العربية
+            const reportDate = new Date().toLocaleDateString('ar-EG', {
+                weekday: 'long',
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric'
+            });
+
             return `
                 <div class="report-header">
                     <h1>${project.name}</h1>
                     <div class="report-meta">
-                        <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}</p>
-                        <p>عدد المهام: ${tasks.length}</p>
+                        <p>
+                            <i class="fas fa-calendar-alt"></i>
+                            تاريخ التقرير: ${reportDate}
+                        </p>
+                        <p>
+                            <i class="fas fa-tasks"></i>
+                            عدد المهام: ${tasks.length}
+                        </p>
                     </div>
                 </div>
 
@@ -345,7 +359,12 @@ const ExportManager = {
                             ${report.html_content}
                         </div>
                         <div class="report-date">
-                            ${new Date(report.created_at).toLocaleDateString('ar-SA')}
+                            ${new Date(report.created_at).toLocaleDateString('ar-EG', {
+                                weekday: 'long',
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            })}
                         </div>
                     </div>
                 `).join('')}

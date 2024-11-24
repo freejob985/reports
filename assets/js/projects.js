@@ -4,14 +4,14 @@
  */
 
 // المتغير العام للمشروع الحالي
-let currentProjectId = null;
+window.currentProjectId = null;
 
 // تحميل المشاريع عند بدء التطبيق
 $(document).ready(function() {
     // استرجاع معرف المشروع المحفوظ
-    currentProjectId = localStorage.getItem('currentProjectId');
-    if (currentProjectId) {
-        currentProjectId = parseInt(currentProjectId);
+    window.currentProjectId = localStorage.getItem('currentProjectId');
+    if (window.currentProjectId) {
+        window.currentProjectId = parseInt(window.currentProjectId);
     }
     loadProjects();
 });
@@ -27,11 +27,11 @@ function loadProjects() {
         success: function(response) {
             if (response.success) {
                 // التحقق من وجود المشروع المحفوظ
-                if (currentProjectId) {
-                    const projectExists = response.projects.some(p => p.id === currentProjectId);
+                if (window.currentProjectId) {
+                    const projectExists = response.projects.some(p => p.id === window.currentProjectId);
                     if (!projectExists) {
                         // إذا لم يعد المشروع موجوداً، نحذف التخزين
-                        currentProjectId = null;
+                        window.currentProjectId = null;
                         localStorage.removeItem('currentProjectId');
                     }
                 }
@@ -54,7 +54,7 @@ function loadProjects() {
  */
 function updateProjectInterface() {
     // تحديث عنوان الصفحة
-    if (currentProjectId) {
+    if (window.currentProjectId) {
         const projectName = $('.project-tab.active').text().trim();
         document.title = `${projectName} - نظام إدارة المهام`;
     } else {
@@ -63,7 +63,7 @@ function updateProjectInterface() {
 
     // تحديث زر إضافة المهام
     const addTaskBtn = $('.btn-add-task');
-    if (currentProjectId) {
+    if (window.currentProjectId) {
         addTaskBtn.prop('disabled', false)
             .attr('title', 'إضاف مهمة جديدة للمشروع');
     } else {
@@ -73,6 +73,12 @@ function updateProjectInterface() {
 
     // إضافة مؤشر المشروع الحالي في الهيدر
     updateCurrentProjectIndicator();
+
+    // تحديث معرف المشروع في زر التصدير
+    const exportBtn = document.querySelector('.export-btn');
+    if (exportBtn) {
+        exportBtn.setAttribute('data-project-id', window.currentProjectId || '');
+    }
 }
 
 /**
@@ -91,7 +97,7 @@ function updateCurrentProjectIndicator() {
     }
 
     const label = $('.current-project-label');
-    if (currentProjectId) {
+    if (window.currentProjectId) {
         const projectName = $('.project-tab.active').text().trim();
         label.html(`
             <span class="badge bg-light text-dark">
@@ -103,7 +109,7 @@ function updateCurrentProjectIndicator() {
         label.html(`
             <span class="badge bg-secondary">
                 <i class="fas fa-folder"></i>
-                لم يتم اختيار مشروع
+                م يتم اختيار مشروع
             </span>
         `);
     }
@@ -114,31 +120,32 @@ function updateCurrentProjectIndicator() {
  * @param {number|null} projectId - معرف المشروع
  */
 function selectProject(projectId) {
-    currentProjectId = projectId;
-
-    // حفظ المشروع المحدد
     if (projectId) {
-        localStorage.setItem('currentProjectId', projectId);
-    } else {
-        localStorage.removeItem('currentProjectId');
+        window.currentProjectId = projectId;
+        // حفظ المشروع المحدد
+        if (projectId) {
+            localStorage.setItem('currentProjectId', projectId);
+        } else {
+            localStorage.removeItem('currentProjectId');
+        }
+
+        // تحديث الواجهة
+        $('.project-tab').removeClass('active');
+        if (projectId === null) {
+            $('[onclick="selectProject(null)"]').addClass('active');
+        } else {
+            $(`[onclick="selectProject(${projectId})"]`).addClass('active');
+        }
+
+        // تحديث الواجهة والمهام
+        updateProjectInterface();
+        loadTasks(projectId);
+        loadProjects();
+
+        // إظهار رسالة تأكيد
+        const projectName = projectId ? $('.project-tab.active').text().trim() : 'جميع المشاريع';
+        toastr.success(`تم اختيار ${projectName}`);
     }
-
-    // تحديث الواجهة
-    $('.project-tab').removeClass('active');
-    if (projectId === null) {
-        $('[onclick="selectProject(null)"]').addClass('active');
-    } else {
-        $(`[onclick="selectProject(${projectId})"]`).addClass('active');
-    }
-
-    // تحديث الواجهة والمهام
-    updateProjectInterface();
-    loadTasks(projectId);
-    loadProjects();
-
-    // إظهار رسالة تأكيد
-    const projectName = projectId ? $('.project-tab.active').text().trim() : 'جميع المشاريع';
-    toastr.success(`تم اختيار ${projectName}`);
 }
 
 // إضافة CSS للمؤشر
@@ -184,7 +191,7 @@ function renderProjects(projects) {
 
     // إضافة زر "جميع المشاريع"
     projectsNav.append(`
-        <button class="nav-link project-tab ${!currentProjectId ? 'active' : ''}" 
+        <button class="nav-link project-tab ${!window.currentProjectId ? 'active' : ''}" 
                 onclick="selectProject(null)">
             <i class="fas fa-list"></i> جميع المشاريع
         </button>
@@ -193,7 +200,7 @@ function renderProjects(projects) {
     // إضافة أزرار المشاريع
     projects.forEach(project => {
         const projectTab = $(`
-            <button class="nav-link project-tab ${currentProjectId === project.id ? 'active' : ''}" 
+            <button class="nav-link project-tab ${window.currentProjectId === project.id ? 'active' : ''}" 
                     onclick="selectProject(${project.id})">
                 <i class="fas fa-folder"></i>
                 ${escapeHtml(project.name)}
@@ -230,7 +237,7 @@ function showAddProjectModal() {
 
 /**
  * تحرير مشروع
- * @param {number} projectId - معرف المشروع
+ * @param {number} projectId - معرف المروع
  */
 function editProject(projectId) {
     // منع انتشار الحدث لتجنب تحديد المشروع
@@ -311,13 +318,13 @@ function saveProject() {
 
                 // إذا كان مشروع جديد، نجعله المشروع الحالي
                 if (!projectId && response.id) {
-                    currentProjectId = response.id;
+                    window.currentProjectId = response.id;
                     localStorage.setItem('currentProjectId', response.id);
                 }
 
                 // تحديث واجهة المستخدم
                 loadProjects();
-                loadTasks(currentProjectId);
+                loadTasks(window.currentProjectId);
                 updateProjectInterface();
                 updateStats();
 
@@ -396,7 +403,7 @@ $('<style>')
     .appendTo('head');
 
 /**
- * تحديث إحصائيات المهام للمشروع
+ * تحديث إحائيات المهام للمشروع
  * @param {number} projectId - معرف المشروع
  */
 function updateProjectTasksStats(projectId) {
@@ -478,7 +485,7 @@ function updateOverallStats(tasks) {
 function updateCurrentProjectInfo(projects) {
     const currentProjectInfo = $('#current-project-info');
 
-    if (!currentProjectId) {
+    if (!window.currentProjectId) {
         currentProjectInfo.html(`
             <div class="text-center text-muted">
                 <i class="fas fa-tasks fa-2x mb-2"></i>
@@ -488,7 +495,7 @@ function updateCurrentProjectInfo(projects) {
         return;
     }
 
-    const currentProject = projects.find(p => p.id === currentProjectId);
+    const currentProject = projects.find(p => p.id === window.currentProjectId);
     if (!currentProject) return;
 
     currentProjectInfo.html(`
@@ -504,7 +511,7 @@ function updateCurrentProjectInfo(projects) {
                 <button class="btn btn-outline-danger btn-sm" onclick="deleteProject(${currentProject.id})">
                     <i class="fas fa-trash"></i> حذف
                 </button>
-                <button class="btn btn-outline-success btn-sm" onclick="exportProjectReport(${currentProject.id})">
+                <button class="btn btn-outline-success btn-sm export-btn" onclick="ExportManager.exportProjectReport(${currentProject.id})">
                     <i class="fas fa-file-pdf"></i> تصدير التقرير
                 </button>
             </div>
@@ -594,8 +601,8 @@ function deleteProject(projectId) {
                 success: function(response) {
                     if (response.success) {
                         // إذا تم حذف المشروع الحالي
-                        if (currentProjectId === projectId) {
-                            currentProjectId = null;
+                        if (window.currentProjectId === projectId) {
+                            window.currentProjectId = null;
                             localStorage.removeItem('currentProjectId');
                         }
 

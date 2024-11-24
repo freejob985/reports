@@ -37,12 +37,33 @@
             background-color: #f5f5f5;
         }
 
-        /* تصميم الهيدر */
+        /* تحسين عرض الصفحة */
+        .container {
+            max-width: 1400px;
+            padding: 0 30px;
+        }
+
+        /* تحسين الهيدر */
         .app-header {
-            background: linear-gradient(135deg, #1976d2 0%, #2196F3 100%);
+            background: linear-gradient(135deg, #1565C0 0%, #1976d2 100%);
             padding: 2rem 0;
             margin-bottom: 2rem;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 30px rgba(0,0,0,0.15);
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* إضافة تأثير خلفية للهيدر */
+        .app-header::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('assets/images/pattern.svg') repeat;
+            opacity: 0.1;
+            pointer-events: none;
         }
 
         .header-content {
@@ -615,7 +636,7 @@
             filter: brightness(1.1);
         }
 
-        /* تنسيق مجموعة الأزرا�� */
+        /* تنسيق مجموعة الأزرا */
         .btn-group {
             border-radius: 50px;
             overflow: hidden;
@@ -867,6 +888,122 @@
             border-radius: 8px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.05);
         }
+
+        /* تنسيق زر التصدير */
+        .export-btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            border: none;
+            padding: 10px 20px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            background: linear-gradient(135deg, #45a049, #4CAF50);
+        }
+
+        .export-btn i {
+            font-size: 1.1em;
+        }
+
+        /* تنسيق عنصر الطباعة */
+        .print-container {
+            background: white;
+            padding: 20mm;
+            margin: 0 auto;
+            max-width: 210mm;
+            direction: rtl;
+        }
+
+        /* تحسين تباعد المكونات */
+        .section-spacing {
+            margin-bottom: 2.5rem;
+        }
+
+        .row-spacing {
+            margin-bottom: 1.5rem;
+        }
+
+        /* تحسين عرض المهام */
+        .task-card {
+            margin-bottom: 2rem;
+            border: none;
+            box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+        }
+
+        /* تمييز المهام الفرعية */
+        .subtasks-section {
+            background: #f8f9fa;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid #4CAF50;
+        }
+
+        /* قائمة المهام الفرعية */
+        .subtasks-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .subtask-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem;
+            border-bottom: 1px solid #eee;
+            transition: all 0.3s ease;
+        }
+
+        .subtask-item:last-child {
+            border-bottom: none;
+        }
+
+        .subtask-item.completed {
+            background: #f1f8f1;
+        }
+
+        .subtask-item.completed .subtask-title {
+            text-decoration: line-through;
+            color: #4CAF50;
+        }
+
+        /* تمييز التقارير */
+        .reports-section {
+            background: #fff;
+            border-radius: 10px;
+            padding: 1.5rem;
+            margin: 1rem 0;
+            border-left: 4px solid #2196F3;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        }
+
+        .report-item {
+            padding: 1rem;
+            border-radius: 8px;
+            background: #f8f9fa;
+            margin-bottom: 1rem;
+        }
+
+        .report-content {
+            font-size: 1rem;
+            line-height: 1.6;
+            color: #333;
+        }
+
+        .report-meta {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-top: 0.5rem;
+            color: #666;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -926,8 +1063,7 @@
 
             <!-- المشروع الحالي -->
             <div class="current-project mt-3" id="current-project-info">
-                <!-- معلومات المشروع الحالي -->
-                <button class="btn btn-primary" onclick="exportProjectReport(currentProjectId)">
+                <button class="btn btn-primary export-btn" data-project-id="">
                     <i class="fas fa-file-pdf"></i> تصدير التقرير
                 </button>
             </div>
@@ -978,7 +1114,7 @@
         <!-- زر إضافة مهمة جديدة -->
         <div class="text-center mb-4">
             <button class="btn btn-primary btn-lg" onclick="showAddTaskModal()">
-                <i class="fas fa-plus"></i> إضافة مهمة جديدة
+                <i class="fas fa-plus"></i> إضافة مهمة ديدة
             </button>
         </div>
 
@@ -1035,7 +1171,7 @@
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title">إ��افة مهمة جديدة</h5>
+                    <h5 class="modal-title">إضافة مهمة جديدة</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
@@ -1118,18 +1254,16 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.jsdelivr.net/npm/toastr@2.1.4/build/toastr.min.js"></script>
     <script src="https://cdn.tiny.cloud/1/7e1mldkbut3yp4tyeob9lt5s57pb8wrb5fqbh11d6n782gm7/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
-    <script src="assets/js/js.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 
+    <!-- ملفات JavaScript الخاصة بالتطبيق -->
+    <script src="assets/js/js.js"></script>
+    <script src="assets/js/projects.js"></script>
     <script src="assets/js/main.js"></script>
     <script src="assets/js/subtasks.js"></script>
     <script src="assets/js/reports.js"></script>
-    <script src="assets/js/projects.js"></script>
-    <!-- إضافة مكتبات PDF -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-    <script src="assets/js/fonts.js"></script>
     <script src="assets/js/export.js"></script>
-    <!-- إضافة مكتبة html2pdf -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
 </body>
 </html> 

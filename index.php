@@ -46,7 +46,7 @@
         /* تحسين الهيدر */
         .app-header {
             background: linear-gradient(135deg, #1565C0 0%, #1976d2 100%);
-            padding: 2rem 0;
+            padding: 1rem 0;
             margin-bottom: 2rem;
             box-shadow: 0 4px 30px rgba(0,0,0,0.15);
             position: relative;
@@ -528,7 +528,7 @@
             background: var(--danger-gradient) !important;
         }
 
-        /* تنسيقات أزرار التقارير */
+        /* نسيقات أزرار التقارير */
         .report-actions .btn {
             display: inline-flex;
             align-items: center;
@@ -835,6 +835,7 @@
             border-radius: 10px;
             padding: 20px;
             box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            margin-top: -1rem;
         }
 
         .projects-tabs {
@@ -1004,6 +1005,130 @@
             color: #666;
             font-size: 0.9rem;
         }
+
+        .export-preview {
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+        }
+        
+        .export-preview h6 {
+            color: #2196F3;
+            margin-bottom: 1rem;
+        }
+        
+        .export-preview ul li {
+            margin-bottom: 0.5rem;
+            color: #666;
+        }
+        
+        .export-preview ul li i {
+            width: 20px;
+            margin-right: 8px;
+            color: #2196F3;
+        }
+        
+        .input-group-text {
+            background: #f8f9fa;
+            color: #666;
+        }
+        
+        #pdfHeight:focus {
+            border-color: #2196F3;
+            box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25);
+        }
+
+        .export-options {
+            border: 1px solid #e0e0e0;
+            background: #ffffff;
+            border-radius: 10px;
+        }
+
+        .export-preview {
+            border: 1px solid #e0e0e0;
+            height: 100%;
+            min-height: 200px;
+        }
+
+        .export-controls {
+            padding-right: 1rem;
+            border-right: 1px solid #e0e0e0;
+        }
+
+        .form-label i {
+            color: #2196F3;
+        }
+
+        .input-group {
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+        }
+
+        .input-group-text {
+            background: #f8f9fa;
+            border-color: #e0e0e0;
+        }
+
+        #pdfHeight {
+            border-color: #e0e0e0;
+        }
+
+        #pdfHeight:focus {
+            border-color: #2196F3;
+            box-shadow: 0 0 0 0.2rem rgba(33, 150, 243, 0.25);
+        }
+
+        .export-btn {
+            transition: all 0.3s ease;
+        }
+
+        .export-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        .export-preview ul li {
+            padding: 0.5rem;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+        }
+
+        .export-preview ul li:hover {
+            background: rgba(33, 150, 243, 0.05);
+        }
+
+        @media (max-width: 768px) {
+            .export-controls {
+                padding-right: 0;
+                border-right: none;
+                border-bottom: 1px solid #e0e0e0;
+                margin-bottom: 1rem;
+                padding-bottom: 1rem;
+            }
+        }
+
+        /* تنسيق زر إخفاء/إظهار خيارات التصدير */
+        .toggle-export-options {
+            cursor: pointer;
+            padding: 0.5rem 1rem;
+            border-radius: 5px;
+            background: #f8f9fa;
+            border: 1px solid #e0e0e0;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .toggle-export-options:hover {
+            background: #e9ecef;
+        }
+
+        .toggle-export-options i {
+            transition: transform 0.3s ease;
+        }
+
+        .toggle-export-options.collapsed i {
+            transform: rotate(-180deg);
+        }
     </style>
 </head>
 <body>
@@ -1061,16 +1186,88 @@
                 </div>
             </div>
 
+            <!-- قسم خيارات التصدير - جديد -->
+            <div class="d-flex justify-content-between align-items-center mt-3">
+                <button class="toggle-export-options" id="toggleExportOptions">
+                    <i class="fas fa-chevron-up"></i>
+                    خيارات التصدير
+                </button>
+            </div>
+
+            <div class="export-options mt-2 p-4" id="exportOptionsPanel">
+                <div class="row">
+                    <div class="col-12 mb-3">
+                        <h5 class="border-bottom pb-2">
+                            <i class="fas fa-cog text-primary"></i>
+                            خيارات التصدير
+                        </h5>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="export-controls">
+                            <div class="form-group mb-3">
+                                <label for="pdfHeight" class="form-label d-flex align-items-center">
+                                    <i class="fas fa-arrows-alt-v me-2 text-primary"></i>
+                                    ارتفاع صفحة PDF (مم)
+                                </label>
+                                <div class="input-group">
+                                    <input type="number" 
+                                           class="form-control" 
+                                           id="pdfHeight" 
+                                           min="500" 
+                                           max="5000" 
+                                           step="100"
+                                           value="1500">
+                                    <span class="input-group-text">مم</span>
+                                </div>
+                                <small class="form-text text-muted mt-1">
+                                    <i class="fas fa-info-circle"></i>
+                                    القيمة الافتراضية: 1500 مم. يمكنك تعديل الارتفاع حسب حجم المحتوى.
+                                </small>
+                            </div>
+
+                            <div class="export-actions mt-3">
+                                <button class="btn btn-primary export-btn w-100" data-project-id="">
+                                    <i class="fas fa-file-pdf me-2"></i>
+                                    تصدير التقرير
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-6">
+                        <div class="export-preview p-3 bg-light rounded">
+                            <h6 class="mb-3">
+                                <i class="fas fa-eye text-primary"></i>
+                                معاينة إعدادات التصدير
+                            </h6>
+                            <ul class="list-unstyled mb-0">
+                                <li class="mb-2">
+                                    <i class="fas fa-file-pdf text-danger"></i>
+                                    نوع الملف: PDF
+                                </li>
+                                <li class="mb-2">
+                                    <i class="fas fa-expand-arrows-alt text-primary"></i>
+                                    العرض: 297 مم (A4)
+                                </li>
+                                <li>
+                                    <i class="fas fa-arrows-alt-v text-primary"></i>
+                                    الارتفاع: <span id="currentHeight" class="fw-bold">1500</span> مم
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- المشروع الحالي -->
             <div class="current-project mt-3" id="current-project-info">
-                <button class="btn btn-primary export-btn" data-project-id="">
-                    <i class="fas fa-file-pdf"></i> تصدير التقرير
-                </button>
+                <!-- محتوى المشروع الحالي -->
             </div>
         </div>
     </div>
 
-    <!-- إضافة نموذج المشروع -->
+    <!-- إضافة موذج المشروع -->
     <div class="modal fade" id="projectModal" tabindex="-1">
         <div class="modal-dialog">
             <div class="modal-content">
@@ -1265,5 +1462,74 @@
     <script src="assets/js/subtasks.js"></script>
     <script src="assets/js/reports.js"></script>
     <script src="assets/js/export.js"></script>
+
+    <!-- إضافة سكريبت لتحديث المعاينة -->
+    <script>
+    document.getElementById('pdfHeight').addEventListener('input', function() {
+        document.getElementById('currentHeight').textContent = this.value;
+    });
+    </script>
+
+    <!-- في نهاية الملف، قبل إغلاق body -->
+    <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // تهيئة حقل الارتفاع
+        const heightInput = document.getElementById('pdfHeight');
+        const heightDisplay = document.getElementById('currentHeight');
+        const exportBtn = document.querySelector('.export-btn');
+        const toggleBtn = document.getElementById('toggleExportOptions');
+        const exportPanel = document.getElementById('exportOptionsPanel');
+        
+        // تحميل حالة الإظهار/الإخفاء
+        const isExportOptionsVisible = localStorage.getItem('exportOptionsVisible') !== 'false';
+        if (!isExportOptionsVisible) {
+            exportPanel.style.display = 'none';
+            toggleBtn.classList.add('collapsed');
+        }
+        
+        // إضافة معالج حدث للزر
+        toggleBtn.addEventListener('click', function() {
+            const isVisible = exportPanel.style.display !== 'none';
+            exportPanel.style.display = isVisible ? 'none' : 'block';
+            toggleBtn.classList.toggle('collapsed');
+            
+            // حفظ الحالة
+            localStorage.setItem('exportOptionsVisible', (!isVisible).toString());
+        });
+        
+        if (heightInput && heightDisplay) {
+            // تحميل القيمة المحفوظة
+            const savedHeight = localStorage.getItem('pdfPageHeight') || '1500';
+            heightInput.value = savedHeight;
+            heightDisplay.textContent = savedHeight;
+            
+            // تحديث القيمة عند التغيير
+            heightInput.addEventListener('input', function() {
+                const value = this.value;
+                heightDisplay.textContent = value;
+                localStorage.setItem('pdfPageHeight', value);
+                
+                // تحديث تكوين التصدير
+                if (window.ExportManager) {
+                    window.ExportManager.config.jsPDF.format[1] = parseInt(value);
+                }
+            });
+        }
+        
+        // تحديث معرف المشروع في زر التصدير
+        function updateExportButton(projectId) {
+            if (exportBtn) {
+                exportBtn.setAttribute('data-project-id', projectId || '');
+            }
+        }
+        
+        // إضافة للكود الموجود للتعامل مع تحديث المشروع الحالي
+        window.addEventListener('projectChanged', function(e) {
+            if (e.detail && e.detail.projectId) {
+                updateExportButton(e.detail.projectId);
+            }
+        });
+    });
+    </script>
 </body>
 </html> 

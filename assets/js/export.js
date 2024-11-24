@@ -6,20 +6,49 @@
 const ExportManager = {
         /**
          * تهيئة خيارات التصدير
+         * يتم استخدام القيمة المخزنة في localStorage أو القيمة الافتراضية 1500
          */
         config: {
             margin: 0,
             filename: 'تقرير-المهام.pdf',
             image: { type: 'jpeg', quality: 0.98 },
             html2canvas: {
-                scale: 3,
+                scale: 2,
                 useCORS: true,
                 logging: false
             },
             jsPDF: {
                 unit: 'mm',
-                format: [297, 1500],
+                format: [297, null], // سيتم تحديث الطول ديناميكياً
                 orientation: 'portrait'
+            }
+        },
+
+        /**
+         * تهيئة المدير عند تحميل الصفحة
+         */
+        init() {
+            // إضافة مستمع لحدث تغيير طول الصفحة
+            document.getElementById('pdfHeight').addEventListener('change', this.updatePageHeight.bind(this));
+
+            // تحميل القيمة المخزنة أو استخدام القيمة الافتراضية
+            const savedHeight = localStorage.getItem('pdfPageHeight') || '1500';
+            document.getElementById('pdfHeight').value = savedHeight;
+            this.config.jsPDF.format[1] = parseInt(savedHeight);
+        },
+
+        /**
+         * تحديث ارتفاع الصفحة وحفظه
+         * @param {Event} event حدث تغيير القيمة
+         */
+        updatePageHeight(event) {
+            const height = parseInt(event.target.value);
+            if (height > 0) {
+                this.config.jsPDF.format[1] = height;
+                localStorage.setItem('pdfPageHeight', height.toString());
+                toastr.success('تم تحديث ارتفاع الصفحة بنجاح');
+            } else {
+                toastr.error('يرجى إدخال قيمة صحيحة للارتفاع');
             }
         },
 
@@ -144,41 +173,38 @@ const ExportManager = {
             const { project, tasks } = data;
 
             return `
-            <div class="report-header">
-                <h1>تقرير</h1>
-                <h2>${project.name}</h2>
-                <div class="report-meta">
-                    <p>تاريخ التقرير: ${new Date().toLocaleDateString('en-US', {
-                        year: 'numeric',
-                        month: '2-digit',
-                        day: '2-digit'
-                    })}</p>
-                    <p>عدد المهام: ${tasks.length}</p>
-                </div>
-            </div>
-
-            <div class="report-body">
-                <div class="project-details">
-                    <h2>تفاصيل المشروع</h2>
-                    <p>${project.description || 'لا يوجد وصف'}</p>
+                <div class="report-header">
+                    <h1>${project.name}</h1>
+                    <div class="report-meta">
+                        <p>تاريخ التقرير: ${new Date().toLocaleDateString('ar-SA')}</p>
+                        <p>عدد المهام: ${tasks.length}</p>
+                    </div>
                 </div>
 
-                <div class="tasks-section">
-                    <h2>المهام</h2>
-                    ${this.generateTasksContent(tasks)}
-                </div>
+                <div class="report-body">
+                    ${project.description ? `
+                        <div class="project-details">
+                            <h2>تفاصيل المشروع</h2>
+                            <p>${project.description}</p>
+                        </div>
+                    ` : ''}
 
-                <div class="report-summary">
-                    <h2>ملخص التقدم</h2>
-                    ${this.generateProgressSummary(tasks)}
+                    <div class="tasks-section">
+                        <h2>المهام</h2>
+                        ${this.generateTasksContent(tasks)}
+                    </div>
+
+                    <div class="report-summary">
+                        <h2>ملخص التقدم</h2>
+                        ${this.generateProgressSummary(tasks)}
+                    </div>
                 </div>
-            </div>
-        `;
+            `;
         },
 
         /**
          * إنشاء محتوى المهام
-         * @param {Array} tasks قائمة المهام
+         * @param {Array} tasks قائمة لمهام
          * @returns {string} HTML محتوى المهام
          */
         generateTasksContent(tasks) {
@@ -341,7 +367,7 @@ const ExportManager = {
         style.textContent = `
             .print-container {
                 font-family: 'Cairo', 'Noto Kufi Arabic', sans-serif;
-                padding: 30mm;
+                padding: 10mm 20mm;
                 background: white;
                 direction: rtl;
                 max-width: 100%;
@@ -350,40 +376,40 @@ const ExportManager = {
 
             .report-header {
                 text-align: center;
-                margin-bottom: 40px;
+                margin-bottom: 20px;
                 border-bottom: 2px solid #333;
-                padding-bottom: 20px;
+                padding-bottom: 15px;
                 background: linear-gradient(135deg, #1976d2 0%, #2196F3 100%);
                 color: white;
-                padding: 2rem;
+                padding: 1rem;
                 border-radius: 10px;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.1);
             }
 
             .report-header h1 {
-                font-size: 2.8rem;
-                margin-bottom: 1rem;
+                font-size: 2rem;
+                margin-bottom: 0.5rem;
                 color: white;
             }
 
             .report-header h2 {
-                font-size: 2rem;
-                margin-bottom: 1.5rem;
+                font-size: 1.5rem;
+                margin-bottom: 1rem;
                 color: white;
                 opacity: 0.9;
             }
 
             .report-meta {
                 color: white;
-                font-size: 16px;
+                font-size: 14px;
                 display: flex;
                 justify-content: space-around;
-                margin-top: 2rem;
+                margin-top: 1rem;
             }
 
             .report-meta p {
                 background: rgba(255,255,255,0.1);
-                padding: 0.7rem 1.5rem;
+                padding: 0.5rem 1rem;
                 border-radius: 20px;
                 margin: 0;
                 color: white;
@@ -391,19 +417,19 @@ const ExportManager = {
 
             .task-card {
                 border: 1px solid #eee;
-                padding: 20px;
-                margin: 25px 0;
+                padding: 15px;
+                margin: 15px 0;
                 border-radius: 12px;
                 box-shadow: 0 4px 15px rgba(0,0,0,0.05);
                 background: #fff;
             }
 
             .task-title {
-                font-size: 1.5rem;
+                font-size: 1.3rem;
                 color: #1976d2;
                 border-bottom: 2px solid #eee;
-                padding-bottom: 1rem;
-                margin-bottom: 1.5rem;
+                padding-bottom: 0.8rem;
+                margin-bottom: 1rem;
                 display: flex;
                 align-items: center;
                 gap: 0.5rem;
@@ -618,11 +644,17 @@ const ExportManager = {
 
             @media print {
                 .print-container {
-                    padding: 0;
+                    padding: 5mm 15mm;
                 }
                 
                 .task-card {
                     break-inside: avoid;
+                    margin: 10px 0;
+                }
+
+                .report-header {
+                    margin-top: 0;
+                    padding-top: 10px;
                 }
             }
         `;
@@ -662,4 +694,9 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     });
+});
+
+// تهيئة المدير عند تحميل الصفحة
+document.addEventListener('DOMContentLoaded', () => {
+    ExportManager.init();
 });

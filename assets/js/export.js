@@ -1,11 +1,9 @@
 /**
  * وحدة تصدير التقارير إلى PDF باستخدام html2pdf.js
- * المكتبات المطلوبة:
- * - html2pdf.js: https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js
  */
 
 // تعريف الثوابت العامة
-const PDF_MARGIN = 20;
+const PDF_MARGIN = 5; // تقليل الهوامش
 const COLORS = {
     primary: '#0d6efd',
     success: '#198754',
@@ -18,62 +16,45 @@ const COLORS = {
 
 // تعريف أنماط CSS للتقرير
 const reportStyles = `
-    /* تنسيقات عامة للتقرير */
     .report-container {
         font-family: 'Cairo', 'Tajawal', sans-serif;
         direction: rtl;
-        padding: 50px;
-        max-width: 1200px;
-        margin: 0 auto;
+        padding: 0;
+        width: 100%;
+        max-width: 100%;
+        margin: 0;
         background: #fff;
-        line-height: 1.8;
+        line-height: 1.6;
     }
 
-    /* تنسيق رأس التقرير */
+    /* رأس التقرير */
     .report-header {
         background: linear-gradient(135deg, ${COLORS.primary} 0%, #1a237e 100%);
         color: white;
-        padding: 50px 40px;
+        padding: 40px;
         text-align: center;
-        border-radius: 20px;
         margin-bottom: 40px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.15);
     }
 
     .report-header h1 {
-        font-family: 'Cairo', sans-serif;
-        font-weight: 800;
-        margin: 0 0 20px 0;
-        font-size: 3rem;
-        text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
-    }
-
-    /* تنسيق معلومات المشروع */
-    .project-info {
-        background: ${COLORS.light};
-        padding: 40px;
-        border-radius: 20px;
-        margin-bottom: 40px;
-        box-shadow: 0 2px 10px rgba(0,0,0,0.05);
-    }
-
-    .project-info h2 {
-        color: ${COLORS.dark};
+        font-size: 32px;
         font-weight: 700;
-        margin-bottom: 25px;
-        font-size: 2rem;
-        border-right: 5px solid ${COLORS.primary};
-        padding-right: 15px;
+        margin: 0 0 15px 0;
     }
 
-    /* تنسيق المهام الرئيسية */
+    /* قسم المهام */
+    .tasks-section {
+        padding: 0 40px;
+        margin-bottom: 40px;
+    }
+
+    /* المهام الرئيسية */
     .task-item {
         background: white;
         padding: 30px;
-        border-radius: 15px;
         margin-bottom: 30px;
-        box-shadow: 0 3px 15px rgba(0,0,0,0.05);
-        border: 1px solid #eee;
+        border-radius: 15px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.1);
         position: relative;
         overflow: hidden;
     }
@@ -84,7 +65,7 @@ const reportStyles = `
         right: 0;
         top: 0;
         bottom: 0;
-        width: 5px;
+        width: 6px;
         background: ${COLORS.primary};
     }
 
@@ -92,151 +73,142 @@ const reportStyles = `
         background: ${COLORS.success};
     }
 
-    .task-item.completed h3 {
-        text-decoration: line-through;
-        color: ${COLORS.success};
-    }
-
     .task-item h3 {
-        font-family: 'Cairo', sans-serif;
-        font-weight: 700;
-        font-size: 1.5rem;
+        font-size: 24px;
+        font-weight: 600;
         margin-bottom: 20px;
         padding-bottom: 15px;
         border-bottom: 2px solid #eee;
+        display: flex;
+        align-items: center;
+        gap: 15px;
     }
 
-    /* تنسيق المهام الفرعية */
+    .task-item.completed h3::after {
+        content: '✓';
+        display: inline-block;
+        width: 30px;
+        height: 30px;
+        background: ${COLORS.success};
+        color: white;
+        border-radius: 50%;
+        text-align: center;
+        line-height: 30px;
+        font-size: 18px;
+        margin-right: auto;
+    }
+
+    /* المهام الفرعية */
+    .subtasks-section {
+        margin: 25px 0;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 10px;
+    }
+
     .subtasks-list {
         list-style: none;
         padding: 0;
-        margin: 25px 0;
-        border-right: 3px solid #eee;
-        padding-right: 20px;
+        margin: 0;
+        display: grid;
+        gap: 15px;
     }
 
     .subtask-item {
+        display: flex;
+        align-items: center;
         padding: 15px 20px;
-        margin-bottom: 15px;
-        background: ${COLORS.light};
-        border-radius: 10px;
+        background: white;
+        border-radius: 8px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         position: relative;
+        padding-right: 50px;
     }
 
-    .subtask-item.completed {
-        text-decoration: line-through;
-        color: ${COLORS.success};
-        background: #f8fff8;
+    .subtask-item::before {
+        content: '×';
+        position: absolute;
+        right: 15px;
+        width: 24px;
+        height: 24px;
+        background: ${COLORS.danger};
+        color: white;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        font-weight: bold;
     }
 
     .subtask-item.completed::before {
         content: '✓';
-        position: absolute;
-        right: -30px;
+        background: ${COLORS.success};
+    }
+
+    .subtask-item.completed {
+        background: #f0f8f1;
         color: ${COLORS.success};
-        font-weight: bold;
+        text-decoration: line-through;
     }
 
-    /* تنسيق الملاحظات */
-    .notes-section {
-        background: #fff9e6;
-        padding: 25px;
-        border-radius: 15px;
-        margin: 30px 0;
-        border-right: 5px solid ${COLORS.warning};
+    /* التقارير */
+    .reports-section {
+        margin-top: 30px;
+        padding-top: 20px;
+        border-top: 2px solid #eee;
     }
 
-    .notes-section h4 {
-        color: ${COLORS.warning};
-        margin-bottom: 15px;
-        font-weight: 600;
+    .report-item {
+        background: #f8f9fa;
+        padding: 20px;
+        margin-bottom: 20px;
+        border-radius: 10px;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    }
+
+    .report-date {
+        color: ${COLORS.secondary};
+        font-size: 14px;
+        margin-bottom: 10px;
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 8px;
     }
 
-    .notes-section h4::before {
-        content: '📝';
-        font-size: 1.2em;
+    .report-content {
+        font-size: 16px;
+        line-height: 1.8;
+        color: #333;
     }
 
-    /* تنسيق شريط التقدم */
-    .progress-container {
-        background: ${COLORS.light};
-        border-radius: 15px;
-        padding: 5px;
-        margin: 30px 0;
-        box-shadow: inset 0 2px 5px rgba(0,0,0,0.1);
-    }
-
-    .progress-bar {
-        background: linear-gradient(135deg, ${COLORS.success} 0%, #4CAF50 100%);
-        height: 25px;
-        border-radius: 10px;
-        transition: width 0.4s ease;
-        text-align: center;
+    /* شارات الحالة */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 20px;
+        border-radius: 20px;
+        font-size: 14px;
+        font-weight: 500;
         color: white;
-        font-weight: 600;
-        line-height: 25px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
-    }
-
-    /* تنسيق الإحصائيات */
-    .stats-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 25px;
-        margin: 30px 0;
-    }
-
-    .stat-item {
-        background: white;
-        padding: 20px;
-        border-radius: 15px;
-        text-align: center;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-    }
-
-    .stat-item .value {
-        font-size: 2rem;
-        font-weight: 700;
-        color: ${COLORS.primary};
         margin: 10px 0;
-    }
-
-    /* تنسيق التذييل */
-    .report-footer {
-        text-align: center;
-        margin-top: 50px;
-        padding-top: 30px;
-        border-top: 2px solid ${COLORS.light};
-        color: ${COLORS.secondary};
-    }
-
-    .report-footer p {
-        margin: 8px 0;
-        font-size: 0.9rem;
     }
 
     /* تنسيقات الطباعة */
     @media print {
         .report-container {
-            padding: 20px;
+            padding: 0;
         }
 
-        .report-header {
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
-        }
-
-        .task-item, .subtask-item {
+        .task-item {
             break-inside: avoid;
             page-break-inside: avoid;
         }
 
-        .notes-section {
-            break-before: page;
-            page-break-before: always;
+        .subtasks-section {
+            break-inside: avoid;
+            page-break-inside: avoid;
         }
     }
 `;
@@ -249,7 +221,6 @@ async function exportProjectReport(projectId = null) {
     const reportContainer = document.createElement('div');
     reportContainer.className = 'report-container';
 
-    // إضافة الأنماط
     const styleElement = document.createElement('style');
     styleElement.textContent = reportStyles;
     reportContainer.appendChild(styleElement);
@@ -264,19 +235,16 @@ async function exportProjectReport(projectId = null) {
 
         if (response.success) {
             const project = response.project;
-            const stats = await getProjectStats(projectId);
             const tasks = await getProjectTasks(projectId);
 
             // جلب المهام الفرعية والتقارير لكل مهمة
             for (let task of tasks) {
-                // جلب المهام الفرعية
                 const subtasksResponse = await $.ajax({
                     url: `api/subtasks.php?task_id=${task.id}`,
                     method: 'GET'
                 });
                 task.subtasks = subtasksResponse.success ? subtasksResponse.subtasks : [];
 
-                // جلب التقارير
                 const reportsResponse = await $.ajax({
                     url: `api/reports.php?task_id=${task.id}`,
                     method: 'GET'
@@ -284,52 +252,23 @@ async function exportProjectReport(projectId = null) {
                 task.reports = reportsResponse.success ? reportsResponse.reports : [];
             }
 
-            const today = new Intl.DateTimeFormat('ar-SA', {
+            const today = new Intl.DateTimeFormat('ar', {
                 year: 'numeric',
                 month: 'long',
-                day: 'numeric'
+                day: 'numeric',
+                weekday: 'long'
             }).format(new Date());
 
             reportContainer.innerHTML += `
                 <div class="report-header">
                     <h1>تقرير ${project.name}</h1>
-                    <p>ليوم ${today}</p>
-                </div>
-
-                <div class="project-info">
-                    <h2>وصف المشروع</h2>
-                    <p>${project.description || 'لا يوجد وصف'}</p>
-                </div>
-
-                <div class="project-stats">
-                    <h3>إحصائيات المشروع</h3>
-                    <div class="stats-grid">
-                        <div class="stat-item">
-                            <div class="stat-label">إجمالي المهام</div>
-                            <div class="stat-value">${stats.total}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">المهام المكتملة</div>
-                            <div class="stat-value">${stats.completed}</div>
-                        </div>
-                        <div class="stat-item">
-                            <div class="stat-label">المهام قيد التنفيذ</div>
-                            <div class="stat-value">${stats.in_progress}</div>
-                        </div>
-                    </div>
-                    <div class="progress-container">
-                        <div class="progress-bar" style="width: ${stats.progress}%">
-                            ${stats.progress}%
-                        </div>
-                    </div>
+                    <p>${today}</p>
                 </div>
 
                 <div class="tasks-section">
-                    <h2>المهام</h2>
                     ${tasks.map(task => `
                         <div class="task-item ${task.status === 'completed' ? 'completed' : ''}">
                             <h3>${task.title}</h3>
-                            <p>${task.description || ''}</p>
                             <div class="status-badge" style="background: ${getStatusColor(task.status)}">
                                 ${getStatusText(task.status)}
                             </div>
@@ -337,64 +276,42 @@ async function exportProjectReport(projectId = null) {
                             <!-- المهام الفرعية -->
                             ${task.subtasks && task.subtasks.length > 0 ? `
                                 <div class="subtasks-section">
-                                    <h4>المهام الفرعية</h4>
                                     <ul class="subtasks-list">
                                         ${task.subtasks.map(subtask => `
                                             <li class="subtask-item ${subtask.completed ? 'completed' : ''}">
-                                                ${subtask.completed ? '✓' : '○'} ${subtask.title}
+                                                ${subtask.title}
                                             </li>
                                         `).join('')}
                                     </ul>
-                                    <div class="subtasks-progress">
-                                        <div class="progress-label">تقدم المهام الفرعية:</div>
-                                        <div class="progress-container">
-                                            <div class="progress-bar" style="width: ${
-                                                task.subtasks.length > 0 
-                                                ? Math.round((task.subtasks.filter(s => s.completed).length / task.subtasks.length) * 100)
-                                                : 0
-                                            }%">
-                                                ${
-                                                    task.subtasks.length > 0 
-                                                    ? Math.round((task.subtasks.filter(s => s.completed).length / task.subtasks.length) * 100)
-                                                    : 0
-                                                }%
-                                            </div>
-                                        </div>
-                                    </div>
                                 </div>
-                            ` : '<div class="no-subtasks">لا توجد مهام فرعية</div>'}
+                            ` : ''}
 
                             <!-- التقارير -->
                             ${task.reports && task.reports.length > 0 ? `
                                 <div class="reports-section">
-                                    <h4>التقارير</h4>
-                                    <div class="reports-list">
-                                        ${task.reports.map(report => `
-                                            <div class="report-item">
-                                                <div class="report-date">
-                                                    ${new Date(report.created_at).toLocaleDateString('ar-SA')}
-                                                </div>
-                                                <div class="report-content">
-                                                    ${report.content}
-                                                </div>
+                                    ${task.reports.map(report => `
+                                        <div class="report-item">
+                                            <div class="report-date">
+                                                ${new Date(report.created_at).toLocaleDateString('ar', {
+                                                    year: 'numeric',
+                                                    month: 'long',
+                                                    day: 'numeric'
+                                                })}
                                             </div>
-                                        `).join('')}
-                                    </div>
+                                            <div class="report-content">
+                                                ${report.content}
+                                            </div>
+                                        </div>
+                                    `).join('')}
                                 </div>
-                            ` : '<div class="no-reports">لا توجد تقارير</div>'}
+                            ` : ''}
                         </div>
                     `).join('')}
                 </div>
-
-                <div class="report-footer">
-                    <p>تم إنشاء هذا التقرير بواسطة نظام إدارة المهام</p>
-                    <p>${today}</p>
-                </div>
             `;
 
-            // خيارات تصدير PDF
             const options = {
-                margin: 10,
+                margin: 0,
                 filename: `تقرير_${project.name}_${today}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
                 html2canvas: { 
@@ -409,7 +326,6 @@ async function exportProjectReport(projectId = null) {
                 }
             };
 
-            // تصدير التقرير
             await html2pdf().from(reportContainer).set(options).save();
             reportContainer.remove();
             toastr.success('تم تصدير التقرير بنجاح');
@@ -419,19 +335,6 @@ async function exportProjectReport(projectId = null) {
         toastr.error('حدث خطأ أثناء تصدير التقرير');
         reportContainer.remove();
     }
-}
-
-/**
- * جلب إحصائيات المشروع
- * @param {number} projectId - معرف المشروع
- * @returns {Promise<Object>} إحصائيات المشروع
- */
-async function getProjectStats(projectId) {
-    const response = await $.ajax({
-        url: `api/tasks.php?project_id=${projectId}&stats=true`,
-        method: 'GET'
-    });
-    return response.stats;
 }
 
 /**

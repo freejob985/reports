@@ -210,52 +210,90 @@ const ExportManager = {
         generateTasksContent(tasks) {
             if (!Array.isArray(tasks)) return '<p>لا توجد مهام</p>';
 
-            return tasks.map(task => `
-                <div class="task-card">
-                    <h3 class="task-title">
-                        <i class="fas fa-tasks"></i>
-                        ${task.title}
-                    </h3>
-                    <p class="task-description">${task.description || 'لا يوجد وصف'}</p>
-                    
-                    <div class="subtasks-section">
-                        <h4>
-                            <i class="fas fa-list-ul"></i>
-                            المهام الفرعية
-                        </h4>
-                        <ul class="subtasks-list">
-                            ${(task.subtasks || []).map(subtask => `
-                                <li class="subtask-item ${subtask.completed ? 'completed' : ''}">
-                                    <i class="fas ${subtask.completed ? 'fa-check-circle text-success' : 'fa-circle text-muted'}"></i>
-                                    <span class="subtask-title">${subtask.title}</span>
-                                </li>
-                            `).join('')}
-                        </ul>
-                    </div>
+            return tasks.map(task => {
+                // تحديد الأيقونة واللون حسب حالة المهمة
+                const statusConfig = {
+                    'completed': {
+                        icon: 'fa-check-circle',
+                        color: '#4CAF50',
+                        text: 'مكتملة'
+                    },
+                    'in-progress': {
+                        icon: 'fa-clock',
+                        color: '#2196F3',
+                        text: 'قيد التنفيذ'
+                    },
+                    'pending': {
+                        icon: 'fa-hourglass',
+                        color: '#FFC107',
+                        text: 'قيد الانتظار'
+                    }
+                };
 
-                    <div class="reports-section">
-                        <h4>
-                            <i class="fas fa-file-alt"></i>
-                            التقارير
-                        </h4>
-                        ${(task.reports || []).map(report => `
-                            <div class="report-item">
-                                <div class="report-content">
-                                    ${report.html_content}
+                const status = statusConfig[task.status] || statusConfig.pending;
+
+                return `
+                    <div class="task-card" style="border-left: 4px solid ${status.color}; margin-bottom: 20px; padding: 15px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+                        <h3 class="task-title">
+                            <i class="fas fa-tasks"></i>
+                            ${task.title}
+                            <span class="task-status" style="float: left; color: ${status.color};">
+                                <i class="fas ${status.icon}"></i>
+                                ${status.text}
+                            </span>
+                        </h3>
+                        <p class="task-description">${task.description || 'لا يوجد وصف'}</p>
+                        
+                        <div class="task-meta" style="color: #666; font-size: 0.9rem; margin: 10px 0;">
+                            <i class="fas fa-calendar-alt"></i>
+                            ${new Date(task.created_at).toLocaleDateString('ar-EG', {
+                                year: 'numeric',
+                                month: 'long',
+                                day: 'numeric'
+                            })}
+                        </div>
+                        
+                        <div class="subtasks-section">
+                            <h4>
+                                <i class="fas fa-list-ul"></i>
+                                المهام الفرعية
+                            </h4>
+                            <ul class="subtasks-list">
+                                ${(task.subtasks || []).map(subtask => `
+                                    <li class="subtask-item ${subtask.completed ? 'completed' : ''}" 
+                                        style="padding: 8px; border-bottom: 1px solid #eee;">
+                                        <i class="fas ${subtask.completed ? 'fa-check-circle text-success' : 'fa-circle text-muted'}"></i>
+                                        <span class="subtask-title">${subtask.title}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+
+                        <div class="reports-section">
+                            <h4>
+                                <i class="fas fa-file-alt"></i>
+                                التقارير
+                            </h4>
+                            ${(task.reports || []).map(report => `
+                                <div class="report-item" style="border: 1px solid #eee; padding: 15px; margin: 10px 0; border-radius: 8px;">
+                                    <div class="report-content">
+                                        ${report.html_content}
+                                    </div>
+                                    <div class="report-meta" style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+                                        <i class="fas fa-calendar-alt"></i>
+                                        ${new Date(report.created_at).toLocaleDateString('ar-EG', {
+                                            year: 'numeric',
+                                            month: 'long',
+                                            day: 'numeric',
+                                            weekday: 'long'
+                                        })}
+                                    </div>
                                 </div>
-                                <div class="report-meta">
-                                    <i class="fas fa-calendar-alt"></i>
-                                    ${new Date(report.created_at).toLocaleDateString('en-US', {
-                                        year: 'numeric',
-                                        month: '2-digit',
-                                        day: '2-digit'
-                                    })}
-                                </div>
-                            </div>
-                        `).join('')}
+                            `).join('')}
+                        </div>
                     </div>
-                </div>
-            `).join('');
+                `;
+            }).join('');
         },
 
         /**
@@ -417,11 +455,12 @@ const ExportManager = {
 
             .task-card {
                 border: 1px solid #eee;
-                padding: 15px;
-                margin: 15px 0;
-                border-radius: 12px;
-                box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+                border-radius: 8px;
+                margin-bottom: 25px;
                 background: #fff;
+                page-break-inside: avoid;
+                position: relative;
+                transition: all 0.3s ease;
             }
 
             .task-title {
@@ -656,6 +695,25 @@ const ExportManager = {
                     margin-top: 0;
                     padding-top: 10px;
                 }
+            }
+
+            .task-status {
+                display: inline-flex;
+                align-items: center;
+                gap: 5px;
+                padding: 5px 10px;
+                border-radius: 15px;
+                font-size: 0.9rem;
+                background: rgba(0,0,0,0.05);
+            }
+
+            .task-meta {
+                color: #666;
+                font-size: 0.9rem;
+                margin: 10px 0;
+                display: flex;
+                align-items: center;
+                gap: 5px;
             }
         `;
         

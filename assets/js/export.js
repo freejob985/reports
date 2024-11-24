@@ -3,7 +3,11 @@
  */
 
 // تعريف الثوابت العامة
-const PDF_MARGIN = 5; // تقليل الهوامش
+const PDF_MARGIN = 0; // إزالة الهوامش تماماً
+const PAGE_SIZE = {
+    width: 297, // عرض A4 بالمليمتر
+    height: 420 // ارتفاع A4 بالمليمتر
+};
 const COLORS = {
     primary: '#0d6efd',
     success: '#198754',
@@ -17,7 +21,7 @@ const COLORS = {
 // تعريف أنماط CSS للتقرير
 const reportStyles = `
     .report-container {
-        font-family: 'Cairo', 'Tajawal', sans-serif;
+        font-family: 'Noto Sans Arabic', 'Cairo', 'Tajawal', sans-serif;
         direction: rtl;
         padding: 0;
         width: 100%;
@@ -27,19 +31,20 @@ const reportStyles = `
         line-height: 1.6;
     }
 
-    /* رأس التقرير */
+    /* تحسين رأس التقرير */
     .report-header {
         background: linear-gradient(135deg, ${COLORS.primary} 0%, #1a237e 100%);
         color: white;
-        padding: 40px;
+        padding: 20px 40px; /* تقليل التباعد العلوي */
         text-align: center;
-        margin-bottom: 40px;
+        margin-bottom: 20px;
     }
 
     .report-header h1 {
-        font-size: 32px;
+        font-size: 38px; /* تكبير حجم العنوان */
         font-weight: 700;
-        margin: 0 0 15px 0;
+        margin: 0 0 10px 0;
+        letter-spacing: 1px;
     }
 
     /* قسم المهام */
@@ -98,12 +103,13 @@ const reportStyles = `
         margin-right: auto;
     }
 
-    /* المهام الفرعية */
+    /* تحسين تنسيق المهام الفرعية */
     .subtasks-section {
-        margin: 25px 0;
-        padding: 20px;
+        margin: 15px 0;
+        padding: 15px;
         background: #f8f9fa;
-        border-radius: 10px;
+        border-radius: 12px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
     }
 
     .subtasks-list {
@@ -117,33 +123,37 @@ const reportStyles = `
     .subtask-item {
         display: flex;
         align-items: center;
-        padding: 15px 20px;
+        padding: 12px 50px 12px 20px;
         background: white;
         border-radius: 8px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         position: relative;
-        padding-right: 50px;
+        margin-bottom: 10px;
+        transition: all 0.3s ease;
     }
 
+    /* تحسين أيقونات الحالة */
     .subtask-item::before {
         content: '×';
         position: absolute;
-        right: 15px;
-        width: 24px;
-        height: 24px;
+        right: 12px;
+        width: 26px;
+        height: 26px;
         background: ${COLORS.danger};
         color: white;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 16px;
+        font-size: 18px;
         font-weight: bold;
+        transition: all 0.3s ease;
     }
 
     .subtask-item.completed::before {
         content: '✓';
         background: ${COLORS.success};
+        font-size: 16px;
     }
 
     .subtask-item.completed {
@@ -152,7 +162,7 @@ const reportStyles = `
         text-decoration: line-through;
     }
 
-    /* التقارير */
+    /* تحسين مظهر التقارير */
     .reports-section {
         margin-top: 30px;
         padding-top: 20px;
@@ -160,11 +170,12 @@ const reportStyles = `
     }
 
     .report-item {
-        background: #f8f9fa;
+        background: white;
         padding: 20px;
-        margin-bottom: 20px;
-        border-radius: 10px;
-        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        margin-bottom: 15px;
+        border-radius: 12px;
+        box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+        border: 1px solid #eee;
     }
 
     .report-date {
@@ -182,7 +193,7 @@ const reportStyles = `
         color: #333;
     }
 
-    /* شارات الحالة */
+    /* تحسين شارات الحالة */
     .status-badge {
         display: inline-flex;
         align-items: center;
@@ -190,20 +201,25 @@ const reportStyles = `
         padding: 8px 20px;
         border-radius: 20px;
         font-size: 14px;
-        font-weight: 500;
+        font-weight: 600;
         color: white;
         margin: 10px 0;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.1);
     }
 
-    /* تنسيقات الطباعة */
+    /* إعدادات الطباعة المحسنة */
     @media print {
         .report-container {
+            width: ${PAGE_SIZE.width}mm;
+            min-height: ${PAGE_SIZE.height}mm;
             padding: 0;
+            margin: 0;
         }
 
         .task-item {
             break-inside: avoid;
             page-break-inside: avoid;
+            margin-bottom: 20px;
         }
 
         .subtasks-section {
@@ -310,23 +326,25 @@ async function exportProjectReport(projectId = null) {
                 </div>
             `;
 
-            const options = {
-                margin: 0,
-                filename: `تقرير_${project.name}_${today}.pdf`,
-                image: { type: 'jpeg', quality: 0.98 },
+            const exportOptions = {
+                margin: PDF_MARGIN,
+                filename: 'project_report.pdf',
+                image: { type: 'jpeg', quality: 1 },
                 html2canvas: { 
                     scale: 2,
                     useCORS: true,
-                    logging: false
+                    logging: false,
+                    width: PAGE_SIZE.width * 3.779528, // تحويل من مم إلى بكسل
+                    height: PAGE_SIZE.height * 3.779528
                 },
                 jsPDF: { 
                     unit: 'mm', 
-                    format: 'a4', 
+                    format: [PAGE_SIZE.width, PAGE_SIZE.height],
                     orientation: 'portrait'
                 }
             };
 
-            await html2pdf().from(reportContainer).set(options).save();
+            await html2pdf().from(reportContainer).set(exportOptions).save();
             reportContainer.remove();
             toastr.success('تم تصدير التقرير بنجاح');
         }

@@ -252,11 +252,12 @@ function updateTaskStatus(taskId, status) {
     if (!task) return;
 
     $.ajax({
-        url: 'api/tasks.php',
+        url: 'api/tasks.php?id=' + taskId,
         method: 'PUT',
         contentType: 'application/json',
         data: JSON.stringify({
             id: taskId,
+            project_id: task.project_id,
             title: task.title,
             description: task.description,
             status: status

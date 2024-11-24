@@ -11,20 +11,23 @@
 const PDF_MARGIN = 20;
 const PAGE_SIZE = {
     width: 297,
-    height: 420
+    height: 700
 };
 
 // تعريف الألوان أولاً لأنها تستخدم في الأنماط
 const COLORS = {
     primary: '#0d6efd',
     primaryGradient: 'linear-gradient(135deg, #0d6efd 0%, #1a237e 100%)',
+    secondaryGradient: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
     success: '#198754',
+    successLight: '#f0f8f1',
     warning: '#ffc107',
     danger: '#dc3545',
     secondary: '#6c757d',
     light: '#f8f9fa',
     dark: '#212529',
-    border: '#e9ecef'
+    border: '#e9ecef',
+    borderDark: '#dee2e6'
 };
 
 // تحديث تعريف الخطوط
@@ -44,32 +47,34 @@ const reportStyles = `
     /* استيراد الخطوط من Google Fonts */
     @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
 
+    /* تحسين حاوية التقرير الرئيسية */
     .report-container {
         font-family: ${FONTS.primary};
         direction: rtl;
-        padding: 20px;
-        width: calc(100% - 40px);
+        padding: 40px;  /* زيادة الهوامش الداخلية */
+        width: calc(100% - 80px);  /* تعديل العرض مع مراعاة الهوامش */
         max-width: 100%;
         margin: 0 auto;
         background: #fff;
         line-height: 1.6;
-        border: 1px solid ${COLORS.border};
-        border-radius: 8px;
-        box-shadow: 0 0 20px rgba(0,0,0,0.05);
+        border: 2px solid ${COLORS.borderDark};  /* حدود أكثر وضوحاً */
+        border-radius: 12px;  /* زيادة انحناء الحواف */
+        box-shadow: 0 4px 24px rgba(0,0,0,0.08);  /* ظل أكثر نعومة */
     }
 
-    /* تحسين رأس التقرير */
+    /* تحسين رأس التقرير مع تدرج لوني مميز */
     .report-header {
         background: ${COLORS.primaryGradient};
         color: white;
-        padding: 40px;
-        text-align: center;
-        margin: -20px -20px 30px -20px;
-        border-radius: 8px 8px 0 0;
+        padding: 50px 40px;  /* زيادة التباعد */
+        margin: -40px -40px 40px -40px;  /* تعديل الهوامش السالبة */
+        border-radius: 12px 12px 0 0;
         position: relative;
         overflow: hidden;
+        text-align: center;
     }
 
+    /* إضافة نمط زخرفي للهيدر */
     .report-header::before {
         content: '';
         position: absolute;
@@ -77,37 +82,38 @@ const reportStyles = `
         left: 0;
         right: 0;
         bottom: 0;
-        background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="rgba(255,255,255,0.1)" x="0" y="0" width="100" height="100"/></svg>');
+        background: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='rgba(255,255,255,0.1)' fill-rule='evenodd'/%3E%3C/svg%3E");
         opacity: 0.1;
     }
 
     .report-header h1 {
-        font-size: 38px;
+        font-size: 42px;
         font-weight: ${FONTS.weights.bold};
-        margin: 0 0 15px 0;
+        margin: 0 0 20px 0;
         text-shadow: 0 2px 4px rgba(0,0,0,0.2);
     }
 
     .report-header p {
-        font-size: 18px;
+        font-size: 20px;
         opacity: 0.9;
         margin: 0;
+        font-weight: ${FONTS.weights.medium};
     }
 
     /* تحسين مظهر المهام الرئيسية */
     .task-item {
         background: white;
-        padding: 0;
-        margin-bottom: 30px;
-        border-radius: 15px;
-        box-shadow: 0 3px 15px rgba(0,0,0,0.08);
+        margin-bottom: 40px;
+        border-radius: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
         border: 1px solid ${COLORS.border};
         overflow: hidden;
     }
 
+    /* هيدر المهمة */
     .task-header {
-        padding: 20px 30px;
-        background: ${COLORS.light};
+        padding: 25px 30px;
+        background: ${COLORS.secondaryGradient};
         border-bottom: 1px solid ${COLORS.border};
         display: flex;
         align-items: center;
@@ -115,115 +121,134 @@ const reportStyles = `
     }
 
     .task-header h3 {
-        font-size: 24px;
+        font-size: 26px;
         font-weight: ${FONTS.weights.semibold};
         margin: 0;
         color: ${COLORS.dark};
     }
 
+    /* محتوى المهمة */
     .task-content {
         padding: 30px;
     }
 
+    /* فوتر المهمة */
     .task-footer {
         padding: 20px 30px;
-        background: ${COLORS.light};
+        background: ${COLORS.secondaryGradient};
         border-top: 1px solid ${COLORS.border};
     }
 
-    /* تحسين المهام الفرعية */
+    /* تحسين قسم المهام الفرعية */
     .subtasks-section {
-        margin: 25px 0;
+        margin: 30px 0;
         background: white;
         border-radius: 12px;
         border: 1px solid ${COLORS.border};
     }
 
     .subtasks-header {
-        padding: 15px 25px;
+        padding: 20px 25px;
         border-bottom: 1px solid ${COLORS.border};
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
+        background: ${COLORS.light};
     }
 
     .subtasks-header i {
         color: ${COLORS.primary};
+        font-size: 20px;
     }
 
     .subtasks-header h4 {
         margin: 0;
-        font-size: 18px;
-        font-weight: ${FONTS.weights.medium};
+        font-size: 20px;
+        font-weight: ${FONTS.weights.semibold};
+        color: ${COLORS.dark};
     }
 
+    /* تحسين قائمة المهام الفرعية */
     .subtasks-list {
         list-style: none;
-        padding: 20px;
+        padding: 25px;
         margin: 0;
         display: grid;
-        gap: 12px;
+        gap: 15px;
     }
 
+    /* تحسين عنصر المهمة الفرعية */
     .subtask-item {
         display: flex;
         align-items: center;
-        padding: 15px 60px 15px 20px;
+        padding: 20px;
         background: ${COLORS.light};
-        border-radius: 8px;
+        border-radius: 10px;
         border: 1px solid ${COLORS.border};
         position: relative;
         transition: all 0.3s ease;
     }
 
     .subtask-item.completed {
-        background: #f0f8f1;
-        border-color: ${COLORS.success}20;
+        background: ${COLORS.successLight};
+        border-color: ${COLORS.success}30;
+    }
+
+    .subtask-item.completed::before {
+        content: '✓';
+        position: absolute;
+        right: 20px;
+        color: ${COLORS.success};
+        font-weight: bold;
     }
 
     /* تحسين قسم التقارير */
     .reports-section {
-        margin-top: 30px;
+        margin: 30px 0;
         background: white;
         border-radius: 12px;
         border: 1px solid ${COLORS.border};
     }
 
     .reports-header {
-        padding: 15px 25px;
+        padding: 20px 25px;
         border-bottom: 1px solid ${COLORS.border};
         display: flex;
         align-items: center;
-        gap: 10px;
+        gap: 12px;
+        background: ${COLORS.light};
     }
 
     .reports-header i {
         color: ${COLORS.primary};
+        font-size: 20px;
     }
 
     .reports-header h4 {
         margin: 0;
-        font-size: 18px;
-        font-weight: ${FONTS.weights.medium};
+        font-size: 20px;
+        font-weight: ${FONTS.weights.semibold};
+        color: ${COLORS.dark};
     }
 
     .reports-content {
-        padding: 20px;
+        padding: 25px;
     }
 
     .report-item {
         background: ${COLORS.light};
-        padding: 20px;
-        margin-bottom: 15px;
-        border-radius: 8px;
+        padding: 25px;
+        margin-bottom: 20px;
+        border-radius: 10px;
         border: 1px solid ${COLORS.border};
     }
 
     /* تحسين الفواصل */
     .section-divider {
-        margin: 30px 0;
+        margin: 35px 0;
         border: none;
-        border-top: 1px solid ${COLORS.border};
+        height: 1px;
+        background: ${COLORS.border};
         position: relative;
     }
 
@@ -232,15 +257,21 @@ const reportStyles = `
         position: absolute;
         top: -1px;
         right: 0;
-        width: 50px;
-        border-top: 2px solid ${COLORS.primary};
+        width: 60px;
+        height: 3px;
+        background: ${COLORS.primary};
+        border-radius: 3px;
     }
 
-    /* إعدادات الطباعة */
+    /* تحسينات الطباعة */
     @media print {
         .report-container {
             width: ${PAGE_SIZE.width}mm;
             min-height: ${PAGE_SIZE.height}mm;
+            padding: 20mm;
+            margin: 0;
+            border: none;
+            box-shadow: none;
         }
 
         .task-item,
@@ -248,6 +279,11 @@ const reportStyles = `
         .reports-section {
             break-inside: avoid;
             page-break-inside: avoid;
+            margin-bottom: 10mm;
+        }
+
+        .report-header {
+            margin: -20mm -20mm 10mm -20mm;
         }
     }
 `;

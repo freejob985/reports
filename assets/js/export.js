@@ -8,6 +8,9 @@ const PAGE_SIZE = {
     width: 297, // عرض A4 بالمليمتر
     height: 420 // ارتفاع A4 بالمليمتر
 };
+const FONTS = {
+    primary: "'Cairo', 'Tajawal', 'Noto Sans Arabic', sans-serif"
+};
 const COLORS = {
     primary: '#0d6efd',
     success: '#198754',
@@ -20,8 +23,10 @@ const COLORS = {
 
 // تعريف أنماط CSS للتقرير
 const reportStyles = `
+    @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@200..1000&family=Tajawal:wght@200;300;400;500;700;800;900&display=swap');
+
     .report-container {
-        font-family: 'Noto Sans Arabic', 'Cairo', 'Tajawal', sans-serif;
+        font-family: ${FONTS.primary};
         direction: rtl;
         padding: 0;
         width: 100%;
@@ -31,13 +36,15 @@ const reportStyles = `
         line-height: 1.6;
     }
 
-    /* تحسين رأس التقرير */
+    /* تحسين رأس التقرير ليأخذ عرض الصفحة كاملاً */
     .report-header {
         background: linear-gradient(135deg, ${COLORS.primary} 0%, #1a237e 100%);
         color: white;
-        padding: 20px 40px; /* تقليل التباعد العلوي */
+        padding: 40px;
         text-align: center;
-        margin-bottom: 20px;
+        margin: 0;
+        width: 100%;
+        box-sizing: border-box;
     }
 
     .report-header h1 {
@@ -105,11 +112,11 @@ const reportStyles = `
 
     /* تحسين تنسيق المهام الفرعية */
     .subtasks-section {
-        margin: 15px 0;
-        padding: 15px;
+        margin: 20px 0;
+        padding: 20px;
         background: #f8f9fa;
-        border-radius: 12px;
-        box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+        border-radius: 15px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
     }
 
     .subtasks-list {
@@ -117,43 +124,38 @@ const reportStyles = `
         padding: 0;
         margin: 0;
         display: grid;
-        gap: 15px;
+        gap: 12px;
     }
 
     .subtask-item {
         display: flex;
         align-items: center;
-        padding: 12px 50px 12px 20px;
+        padding: 15px 60px 15px 20px;
         background: white;
-        border-radius: 8px;
+        border-radius: 10px;
         box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         position: relative;
-        margin-bottom: 10px;
         transition: all 0.3s ease;
     }
 
-    /* تحسين أيقونات الحالة */
     .subtask-item::before {
-        content: '×';
+        content: '⚬';
         position: absolute;
-        right: 12px;
-        width: 26px;
-        height: 26px;
-        background: ${COLORS.danger};
+        right: 20px;
+        width: 24px;
+        height: 24px;
+        background: ${COLORS.secondary};
         color: white;
         border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 18px;
-        font-weight: bold;
-        transition: all 0.3s ease;
+        font-size: 16px;
     }
 
     .subtask-item.completed::before {
         content: '✓';
         background: ${COLORS.success};
-        font-size: 16px;
     }
 
     .subtask-item.completed {
@@ -165,8 +167,17 @@ const reportStyles = `
     /* تحسين مظهر التقارير */
     .reports-section {
         margin-top: 30px;
-        padding-top: 20px;
-        border-top: 2px solid #eee;
+        padding: 20px;
+        background: #f8f9fa;
+        border-radius: 15px;
+    }
+
+    .reports-section::before {
+        content: '📋';
+        display: block;
+        font-size: 24px;
+        margin-bottom: 15px;
+        text-align: center;
     }
 
     .report-item {
@@ -212,17 +223,17 @@ const reportStyles = `
         .report-container {
             width: ${PAGE_SIZE.width}mm;
             min-height: ${PAGE_SIZE.height}mm;
-            padding: 0;
+        }
+
+        .report-header {
+            width: 100%;
             margin: 0;
+            padding: 40px;
         }
 
-        .task-item {
-            break-inside: avoid;
-            page-break-inside: avoid;
-            margin-bottom: 20px;
-        }
-
-        .subtasks-section {
+        .task-item,
+        .subtasks-section,
+        .reports-section {
             break-inside: avoid;
             page-break-inside: avoid;
         }
@@ -244,29 +255,46 @@ async function exportProjectReport(projectId = null) {
     document.body.appendChild(reportContainer);
 
     try {
-        const response = await $.ajax({
-            url: `api/projects.php?id=${projectId}`,
-            method: 'GET'
-        });
+        // تحسين جلب البيانات باستخدام Promise.all
+        const [projectResponse, tasksResponse] = await Promise.all([
+            $.ajax({
+                url: `api/projects.php?id=${projectId}`,
+                method: 'GET'
+            }),
+            $.ajax({
+                url: `api/tasks.php?project_id=${projectId}`,
+                method: 'GET',
+                data: { limit: 1000 } // زيادة حد البيانات المجلوبة
+            })
+        ]);
 
-        if (response.success) {
-            const project = response.project;
-            const tasks = await getProjectTasks(projectId);
+        if (projectResponse.success && tasksResponse.success) {
+            const project = projectResponse.project;
+            const tasks = tasksResponse.tasks;
 
-            // جلب المهام الفرعية والتقارير لكل مهمة
-            for (let task of tasks) {
-                const subtasksResponse = await $.ajax({
-                    url: `api/subtasks.php?task_id=${task.id}`,
-                    method: 'GET'
-                });
-                task.subtasks = subtasksResponse.success ? subtasksResponse.subtasks : [];
+            // جلب المهام الفرعية والتقارير بشكل متوازي
+            const taskPromises = tasks.map(async task => {
+                const [subtasksResponse, reportsResponse] = await Promise.all([
+                    $.ajax({
+                        url: `api/subtasks.php?task_id=${task.id}`,
+                        method: 'GET',
+                        data: { limit: 1000 }
+                    }),
+                    $.ajax({
+                        url: `api/reports.php?task_id=${task.id}`,
+                        method: 'GET',
+                        data: { limit: 1000 }
+                    })
+                ]);
 
-                const reportsResponse = await $.ajax({
-                    url: `api/reports.php?task_id=${task.id}`,
-                    method: 'GET'
-                });
-                task.reports = reportsResponse.success ? reportsResponse.reports : [];
-            }
+                return {
+                    ...task,
+                    subtasks: subtasksResponse.success ? subtasksResponse.subtasks : [],
+                    reports: reportsResponse.success ? reportsResponse.reports : []
+                };
+            });
+
+            const enrichedTasks = await Promise.all(taskPromises);
 
             const today = new Intl.DateTimeFormat('ar', {
                 year: 'numeric',
@@ -277,12 +305,12 @@ async function exportProjectReport(projectId = null) {
 
             reportContainer.innerHTML += `
                 <div class="report-header">
-                    <h1>تقرير ${project.name}</h1>
+                    <h1> ${project.name}</h1>
                     <p>${today}</p>
                 </div>
 
                 <div class="tasks-section">
-                    ${tasks.map(task => `
+                    ${enrichedTasks.map(task => `
                         <div class="task-item ${task.status === 'completed' ? 'completed' : ''}">
                             <h3>${task.title}</h3>
                             <div class="status-badge" style="background: ${getStatusColor(task.status)}">
@@ -353,19 +381,6 @@ async function exportProjectReport(projectId = null) {
         toastr.error('حدث خطأ أثناء تصدير التقرير');
         reportContainer.remove();
     }
-}
-
-/**
- * جلب مهام المشروع
- * @param {number} projectId - معرف المشروع
- * @returns {Promise<Array>} قائمة المهام
- */
-async function getProjectTasks(projectId) {
-    const response = await $.ajax({
-        url: `api/tasks.php?project_id=${projectId}`,
-        method: 'GET'
-    });
-    return response.tasks;
 }
 
 /**

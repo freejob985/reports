@@ -207,10 +207,22 @@
         <!-- TASKS TABLE + Actions-->
         <div class="material-card p-4" id="taskBoardWrap">
           <div class="mb-3 flex flex-wrap items-center gap-2 table-actions">
-              <button onclick="archiveOnes()" class="bg-gray-100 hover:bg-gray-300 text-gray-800 rounded px-2 py-1 text-sm font-bold" title="الأرشفة السريعة"><i class="fas fa-archive"></i> أرشفة المحددات</button>
-              <button onclick="favOnes()" class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded px-2 py-1 text-sm font-bold" title="مفضلة"><i class="fas fa-star"></i> تمييز كمفضلة</button>
-              <button onclick="deleteOnes()" class="bg-red-100 hover:bg-red-200 text-red-800 rounded px-2 py-1 text-sm font-bold" ><i class="fas fa-trash"></i> حذف المحددات</button>
-              <button onclick="copyTasksToClipboard()" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 rounded px-2 py-1 text-sm font-bold" title="نسخ المهام إلى الحافظة"><i class="fas fa-clipboard"></i> نسخ إلى الحافظة</button>
+              <button onclick="archiveOnes()" class="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded px-3 py-2 text-sm font-bold transition-all duration-200 hover:shadow-md" title="الأرشفة السريعة">
+                <i class="fas fa-archive text-purple-600"></i>
+                <span>أرشفة المحددات</span>
+              </button>
+              <button onclick="favOnes()" class="flex items-center gap-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded px-3 py-2 text-sm font-bold transition-all duration-200 hover:shadow-md" title="مفضلة">
+                <i class="fas fa-star text-yellow-500"></i>
+                <span>تمييز كمفضلة</span>
+              </button>
+              <button onclick="deleteOnes()" class="flex items-center gap-2 bg-red-100 hover:bg-red-200 text-red-800 rounded px-3 py-2 text-sm font-bold transition-all duration-200 hover:shadow-md">
+                <i class="fas fa-trash text-red-500"></i>
+                <span>حذف المحددات</span>
+              </button>
+              <button onclick="copyTasksToClipboard()" class="flex items-center gap-2 bg-indigo-100 hover:bg-indigo-200 text-indigo-800 rounded px-3 py-2 text-sm font-bold transition-all duration-200 hover:shadow-md" title="نسخ المهام إلى الحافظة">
+                <i class="fas fa-clipboard text-indigo-500"></i>
+                <span>نسخ إلى الحافظة</span>
+              </button>
               <span id="tableMsg" class="ml-auto text-gray-500 text-sm"></span>
           </div>
           <div class="overflow-x-auto">
@@ -241,13 +253,22 @@
             </table>
           </div>
         </div>
-        <!-- Archive/Favorites quick filter box (for PDF!) -->
+        <!-- Archive/Favorites quick filter box -->
         <div class="material-card p-4 mt-4">
           <div class="flex flex-wrap gap-3 items-center">
-            <span class="font-bold text-base">فلترة متقدمة:</span>
-            <button onclick="showOnly('all')" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded">كل المهام</button>
-            <button onclick="showOnly('archived')" class="px-3 py-1 bg-gray-100 hover:bg-gray-200 rounded">المهام المؤرشفة</button>
-            <button onclick="showOnly('favorite')" class="px-3 py-1 bg-yellow-100 hover:bg-yellow-200 rounded">المهام المفضلة</button>
+            <span class="font-bold text-base ml-2">فلترة متقدمة:</span>
+            <button onclick="showOnly('all')" class="flex items-center gap-2 px-4 py-2 bg-blue-100 hover:bg-blue-200 text-blue-800 rounded transition-all duration-200 hover:shadow-md">
+              <i class="fas fa-tasks text-blue-600"></i>
+              <span>كل المهام</span>
+            </button>
+            <button onclick="showOnly('archived')" class="flex items-center gap-2 px-4 py-2 bg-purple-100 hover:bg-purple-200 text-purple-800 rounded transition-all duration-200 hover:shadow-md">
+              <i class="fas fa-archive text-purple-600"></i>
+              <span>المهام المؤرشفة</span>
+            </button>
+            <button onclick="showOnly('favorite')" class="flex items-center gap-2 px-4 py-2 bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded transition-all duration-200 hover:shadow-md">
+              <i class="fas fa-star text-yellow-500"></i>
+              <span>المهام المفضلة</span>
+            </button>
           </div>
         </div>
       </div>
@@ -580,10 +601,13 @@ function renderTaskTable() {
     let stat = statuses.find(s=>s.id===t.statusId);
     let isDone = t.statusId === 'done';
     html += `
-      <tr class="task-row transition-all duration-75 hover:bg-blue-50 select-none ${isDone ? 'task-done' : ''}" data-id="${t.id}" draggable="true">
-        <td class="py-2 px-3"><input type="checkbox" class="selectTask" data-id="${t.id}"></td>
+      <tr class="task-row transition-all duration-75 hover:bg-blue-50 select-none ${isDone ? 'task-done' : ''} cursor-pointer" 
+          data-id="${t.id}" 
+          draggable="true"
+          onclick="toggleTaskStatus('${t.id}')">
+        <td class="py-2 px-3" onclick="event.stopPropagation()"><input type="checkbox" class="selectTask" data-id="${t.id}"></td>
         <td class="py-2 px-3">
-          <span class="font-bold cursor-pointer" onclick="toggleTaskStatus('${t.id}')">${t.title}</span>
+          <span class="font-bold">${t.title}</span>
           ${t.favorite?'<i class="fas fa-star fav-yes mr-1" aria-label="مفضلة" title="مفضلة"></i>':''}
           ${t.archived?'<i class="fas fa-archive text-gray-400 ml-2" aria-label="مؤرشفة" title="مؤرشفة"></i>':''}
         </td>
@@ -594,11 +618,19 @@ function renderTaskTable() {
         <td class="py-2 px-3">
           <span class="text-blue-900">${prj?.name||'بدون مشروع'}</span>
         </td>
-        <td class="py-2 px-3 flex flex-wrap justify-end gap-2">
-          <button title="تعديل" class="px-1 text-blue-700 hover:text-blue-900 text-lg" onclick="openEditTask('${t.id}')"><i class="fas fa-edit"></i></button>
-          <button title="أرشفة/إظهار" class="px-1 text-gray-500 hover:text-gray-800 text-lg" onclick="toggleArchiveTask('${t.id}')"><i class="fas fa-box-archive"></i></button>
-          <button title="مفضلة" class="px-1 ${t.favorite?'text-yellow-400':'text-gray-500'} hover:text-yellow-600 text-lg" onclick="toggleFavTask('${t.id}')"><i class="fas fa-star"></i></button>
-          <button title="حذف" class="px-1 text-red-600 hover:text-red-900 text-lg" onclick="deleteTask('${t.id}')"><i class="fas fa-trash"></i></button>
+        <td class="py-2 px-3 flex flex-wrap justify-end gap-2" onclick="event.stopPropagation()">
+          <button title="تعديل" class="px-2 py-1 text-blue-700 hover:text-blue-900 hover:bg-blue-100 rounded transition-colors" onclick="openEditTask('${t.id}')">
+            <i class="fas fa-edit"></i>
+          </button>
+          <button title="أرشفة/إظهار" class="px-2 py-1 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors" onclick="toggleArchiveTask('${t.id}')">
+            <i class="fas fa-box-archive"></i>
+          </button>
+          <button title="مفضلة" class="px-2 py-1 ${t.favorite?'text-yellow-400':'text-gray-500'} hover:text-yellow-600 hover:bg-yellow-100 rounded transition-colors" onclick="toggleFavTask('${t.id}')">
+            <i class="fas fa-star"></i>
+          </button>
+          <button title="حذف" class="px-2 py-1 text-red-600 hover:text-red-900 hover:bg-red-100 rounded transition-colors" onclick="deleteTask('${t.id}')">
+            <i class="fas fa-trash"></i>
+          </button>
         </td>
       </tr>`;
   }

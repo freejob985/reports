@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
@@ -27,10 +26,8 @@
     .svg-icon { width: 1.25em; height: 1.25em; vertical-align: -0.125em;}
     .tag {font-size: .90em; background: #ebf0f7; display:inline-block; padding:.18em .7em; border-radius:20px; margin-inline:2px;}
     .fav-yes {color:#f99c24;}
-    /* Table header sticky for PDF export */
-     {
-      thead {background: #e8eaff !important;}
-    }
+    .task-done { text-decoration: line-through; opacity: 0.8; }
+    table thead { background: #e8eaff !important; }
     @media (max-width:690px) {
       html {font-size: 15px;}
       .flex-wrap-responsive { flex-wrap: wrap;}
@@ -285,6 +282,44 @@
   </div>
 </div>
 
+<!-- Add Section Modal -->
+<div id="sectionModal" class="fixed z-30 inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden">
+  <div class="material-card p-5 max-w-md w-full relative">
+    <button class="absolute left-3 top-3 text-gray-400 hover:text-gray-800 text-xl" onclick="closeSectionModal()"><i class="fas fa-times"></i></button>
+    <form id="sectionForm" onsubmit="return saveSection(event)">
+      <input type="hidden" id="sectionId">
+      <div class="mb-3">
+        <label class="block mb-1 font-bold">اسم القسم</label>
+        <input required type="text" id="sectionName" class="w-full px-3 py-2 border border-gray-200 rounded mt-1 focus:ring focus:ring-blue-100">
+      </div>
+      <div class="mb-3">
+        <label class="block mb-1 font-bold">المشروع</label>
+        <select required id="sectionProject" class="w-full px-3 py-2 border border-gray-200 rounded mt-1 focus:ring focus:ring-blue-100"></select>
+      </div>
+      <div class="flex mt-6 gap-3">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-7 rounded font-bold">حفظ</button>
+        <button type="button" onclick="closeSectionModal()" class="bg-gray-100 hover:bg-gray-300 text-gray-700 py-2 px-6 rounded">إلغاء</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Copy Tasks Modal -->
+<div id="copyTasksModal" class="fixed z-30 inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden">
+  <div class="material-card p-5 max-w-md w-full relative">
+    <button class="absolute left-3 top-3 text-gray-400 hover:text-gray-800 text-xl" onclick="closeCopyTasksModal()"><i class="fas fa-times"></i></button>
+    <h3 class="text-xl font-bold mb-4">نسخ المهام</h3>
+    <div class="mb-4">
+      <label class="block mb-2 font-bold">المشروع المستهدف</label>
+      <select id="copyTasksProject" class="w-full px-3 py-2 border border-gray-200 rounded"></select>
+    </div>
+    <div class="flex gap-3">
+      <button onclick="copyTasks()" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded font-bold">نسخ المهام</button>
+      <button onclick="closeCopyTasksModal()" class="bg-gray-100 hover:bg-gray-300 text-gray-700 py-2 px-4 rounded">إلغاء</button>
+    </div>
+  </div>
+</div>
+
 <input type="file" id="dbFileInput" class="hidden" accept=".json">
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -294,6 +329,7 @@
 const DB_TASKS_KEY = 'taskManager.tasks';
 const DB_PROJECTS_KEY = 'taskManager.projects';
 const DB_STATUS_KEY = 'taskManager.statuses';
+const DB_SECTIONS_KEY = 'taskManager.sections';
 const DB_PREFS_KEY = 'taskManager.prefs';
 
 // الوضع الافتراضي للحالات
@@ -307,6 +343,7 @@ const DEFAULT_STATUSES = [
 let tasks = [];
 let projects = [];
 let statuses = [];
+let sections = [];
 
 let filter = {
   projectId: "",
@@ -323,6 +360,7 @@ function loadDB() {
   tasks = JSON.parse(localStorage.getItem(DB_TASKS_KEY) || '[]');
   projects = JSON.parse(localStorage.getItem(DB_PROJECTS_KEY) || '[]');
   statuses = JSON.parse(localStorage.getItem(DB_STATUS_KEY) || '[]');
+  sections = JSON.parse(localStorage.getItem(DB_SECTIONS_KEY) || '[]');
   if (statuses.length === 0) statuses = DEFAULT_STATUSES.slice();
   try {
     filter = {...filter, ...JSON.parse(localStorage.getItem(DB_PREFS_KEY)||'{}')}
@@ -336,6 +374,7 @@ function saveDB() {
   localStorage.setItem(DB_TASKS_KEY, JSON.stringify(tasks));
   localStorage.setItem(DB_PROJECTS_KEY, JSON.stringify(projects));
   localStorage.setItem(DB_STATUS_KEY, JSON.stringify(statuses));
+  localStorage.setItem(DB_SECTIONS_KEY, JSON.stringify(sections));
   localStorage.setItem(DB_PREFS_KEY, JSON.stringify({projectId:filter.projectId, statusId:filter.statusId, favorite:filter.favorite, archived:filter.archived, only:filter.only}));
 }
 
@@ -424,14 +463,14 @@ function renderTaskTable() {
   for(let t of filtered) {
     let prj = projects.find(p=>p.id===t.projectId);
     let stat = statuses.find(s=>s.id===t.statusId);
+    let isDone = t.statusId === 'done';
     html += `
-      <tr class="task-row transition-all duration-75 hover:bg-blue-50 select-none" data-id="${t.id}" draggable="true">
+      <tr class="task-row transition-all duration-75 hover:bg-blue-50 select-none ${isDone ? 'task-done' : ''}" data-id="${t.id}" draggable="true">
         <td class="py-2 px-3"><input type="checkbox" class="selectTask" data-id="${t.id}"></td>
         <td class="py-2 px-3">
-          <span class="font-bold">${t.title}</span>
+          <span class="font-bold cursor-pointer" onclick="toggleTaskStatus('${t.id}')">${t.title}</span>
           ${t.favorite?'<i class="fas fa-star fav-yes mr-1" aria-label="مفضلة" title="مفضلة"></i>':''}
           ${t.archived?'<i class="fas fa-archive text-gray-400 ml-2" aria-label="مؤرشفة" title="مؤرشفة"></i>':''}
-        <div class="text-xs text-gray-400">${t.section||''}</div>
         </td>
         <td class="py-2 px-3">
           <span class="tag" style="background:${stat?.bg};color:${stat?.text};font-weight:700;">${stat?.name||'-'}</span>
@@ -860,6 +899,126 @@ window.addEventListener('keydown',function(e){
     closeTaskModal();closeProjectModal();closeStatusModal();closeMultiTaskModal();
   }
 });
+
+// ============ SECTIONS MANAGEMENT ================
+function openAddSectionModal() {
+  document.getElementById('sectionForm').reset();
+  document.getElementById('sectionId').value = '';
+  document.getElementById('sectionModal').classList.remove('hidden');
+  renderProjectsSelect();
+}
+
+function closeSectionModal() {
+  document.getElementById('sectionModal').classList.add('hidden');
+}
+
+/**
+ * حفظ أو تعديل قسم
+ */
+function saveSection(e) {
+  e.preventDefault();
+  let id = document.getElementById('sectionId').value;
+  let name = document.getElementById('sectionName').value.trim();
+  let projectId = document.getElementById('sectionProject').value;
+  
+  if(!name || !projectId) return false;
+  
+  if(id) {
+    let s = sections.find(s => s.id === id);
+    s.name = name;
+    s.projectId = projectId;
+  } else {
+    sections.push({
+      id: randomId('sec_'),
+      name,
+      projectId
+    });
+  }
+  
+  saveAndRefresh();
+  closeSectionModal();
+  return false;
+}
+
+/**
+ * حذف قسم
+ */
+function deleteSection(id) {
+  if(confirm('هل تريد حذف القسم؟')) {
+    sections = sections.filter(s => s.id !== id);
+    // تحديث المهام المرتبطة بالقسم المحذوف
+    tasks.forEach(t => {
+      if(t.sectionId === id) {
+        t.sectionId = null;
+      }
+    });
+    saveAndRefresh();
+  }
+}
+
+/**
+ * تبديل حالة المهمة بين منجز وقيد الانتظار
+ */
+function toggleTaskStatus(id) {
+  let task = tasks.find(t => t.id === id);
+  if(task) {
+    task.statusId = task.statusId === 'done' ? 'todo' : 'done';
+    saveAndRefresh();
+  }
+}
+
+// ============ COPY TASKS ================
+function openCopyTasksModal() {
+  document.getElementById('copyTasksModal').classList.remove('hidden');
+  renderProjectsSelect();
+}
+
+function closeCopyTasksModal() {
+  document.getElementById('copyTasksModal').classList.add('hidden');
+}
+
+/**
+ * نسخ المهام المحددة أو مهام المشروع الحالي
+ */
+function copyTasks() {
+  let targetProjectId = document.getElementById('copyTasksProject').value;
+  if(!targetProjectId) {
+    alert('الرجاء اختيار المشروع المستهدف');
+    return;
+  }
+
+  let selectedIds = getSelectedTaskIds();
+  let tasksToCopy = selectedIds.length > 0 ? 
+    tasks.filter(t => selectedIds.includes(t.id)) :
+    tasks.filter(t => t.projectId === filter.projectId);
+
+  if(tasksToCopy.length === 0) {
+    alert('لم يتم تحديد أي مهام للنسخ');
+    return;
+  }
+
+  let maxOrder = Math.max(...tasks.map(t => t.sortOrder || 0));
+  
+  tasksToCopy.forEach((t, idx) => {
+    tasks.push({
+      ...t,
+      id: randomId(),
+      projectId: targetProjectId,
+      sortOrder: maxOrder + idx + 1,
+      created: Date.now()
+    });
+  });
+
+  saveAndRefresh();
+  closeCopyTasksModal();
+  alert(`تم نسخ ${tasksToCopy.length} مهمة بنجاح`);
+}
+
+// Add new buttons to the task board actions
+document.querySelector('.material-card .mb-3').insertAdjacentHTML('beforeend', `
+  <button onclick="openCopyTasksModal()" class="bg-purple-100 hover:bg-purple-200 text-purple-800 rounded px-2 py-1 text-sm font-bold"><i class="fas fa-copy"></i> نسخ المهام</button>
+  <button onclick="openAddSectionModal()" class="bg-green-100 hover:bg-green-200 text-green-800 rounded px-2 py-1 text-sm font-bold"><i class="fas fa-folder-plus"></i> إضافة قسم</button>
+`);
 
 </script>
 </body>

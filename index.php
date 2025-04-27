@@ -181,18 +181,23 @@
         <input required type="text" id="taskTitle" class="w-full px-3 py-2 border border-gray-200 rounded mt-1 focus:ring focus:ring-blue-100">
       </div>
       <div class="mb-4">
-        <label class="block mb-1 font-bold">القسم (اختياري)</label>
-        <input type="text" id="taskSection" class="w-full px-3 py-2 border border-gray-200 rounded mt-1 focus:ring focus:ring-blue-100">
+        <label class="block mb-1 font-bold">المشروع</label>
+        <select id="taskProject" required class="w-full px-3 py-2 border border-gray-200 rounded mt-1 focus:ring focus:ring-blue-100" onchange="updateSectionsList()">
+          <option value="">اختر المشروع</option>
+        </select>
       </div>
-      <div class="mb-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div>
-          <label class="block mb-1 font-bold">المشروع</label>
-          <select id="taskProject" required class="w-full px-3 py-2 border border-gray-200 rounded mt-1 focus:ring focus:ring-blue-100"></select>
+      <div class="mb-4">
+        <label class="block mb-1 font-bold">القسم</label>
+        <div class="flex gap-2">
+          <select id="taskSection" class="flex-1 px-3 py-2 border border-gray-200 rounded mt-1 focus:ring focus:ring-blue-100">
+            <option value="">بدون قسم</option>
+          </select>
+          <button type="button" onclick="quickAddSection()" class="mt-1 bg-green-100 hover:bg-green-200 text-green-800 px-3 rounded" title="إضافة قسم جديد"><i class="fas fa-plus"></i></button>
         </div>
-        <div>
-          <label class="block mb-1 font-bold">الحالة</label>
-          <select id="taskStatus" required class="w-full px-3 py-2 border border-gray-200 rounded mt-1 focus:ring focus:ring-blue-100"></select>
-        </div>
+      </div>
+      <div class="mb-4">
+        <label class="block mb-1 font-bold">الحالة</label>
+        <select id="taskStatus" required class="w-full px-3 py-2 border border-gray-200 rounded mt-1 focus:ring focus:ring-blue-100"></select>
       </div>
       <div class="flex items-center gap-4 mt-3">
         <label class="flex items-center gap-2 font-bold"><input type="checkbox" id="taskFavorite"> مفضلة</label>
@@ -320,6 +325,23 @@
   </div>
 </div>
 
+<!-- Quick Add Section Modal -->
+<div id="quickSectionModal" class="fixed z-40 inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden">
+  <div class="material-card p-5 max-w-md w-full relative">
+    <button class="absolute left-3 top-3 text-gray-400 hover:text-gray-800 text-xl" onclick="closeQuickSectionModal()"><i class="fas fa-times"></i></button>
+    <form id="quickSectionForm" onsubmit="return saveQuickSection(event)">
+      <div class="mb-3">
+        <label class="block mb-1 font-bold">اسم القسم الجديد</label>
+        <input required type="text" id="quickSectionName" class="w-full px-3 py-2 border border-gray-200 rounded mt-1 focus:ring focus:ring-blue-100">
+      </div>
+      <div class="flex mt-6 gap-3">
+        <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-7 rounded font-bold">إضافة</button>
+        <button type="button" onclick="closeQuickSectionModal()" class="bg-gray-100 hover:bg-gray-300 text-gray-700 py-2 px-6 rounded">إلغاء</button>
+      </div>
+    </form>
+  </div>
+</div>
+
 <input type="file" id="dbFileInput" class="hidden" accept=".json">
 
 <script src="https://cdn.jsdelivr.net/npm/sortablejs@1.15.2/Sortable.min.js"></script>
@@ -423,12 +445,18 @@ function refreshAll() {
  * عرض المشاريع في خيارات الفلترة / النماذج
  */
 function renderProjectsSelect() {
-  let selects = [document.getElementById('filterProject'),document.getElementById('taskProject'),document.getElementById('multiTaskProject')];
+  let selects = [document.getElementById('filterProject'),document.getElementById('taskProject'),document.getElementById('multiTaskProject'),document.getElementById('sectionProject')];
   selects.forEach(sel=>{
     if(!sel) return;
     let pid = (filter.projectId||"");
     let val = sel.value;
-    sel.innerHTML = `<option value="">جميع المشاريع</option>` + projects.map(p=>`<option value="${p.id}" ${p.id===val?'selected':''}>${p.name}</option>`).join('');
+    
+    if(projects.length === 0) {
+      sel.innerHTML = '<option value="">لا توجد مشاريع - أضف مشروع أولاً</option>';
+    } else {
+      sel.innerHTML = `<option value="">اختر المشروع</option>` + 
+        projects.map(p=>`<option value="${p.id}" ${p.id===val?'selected':''}>${p.name}</option>`).join('');
+    }
     sel.value = val||pid;
   });
 }
@@ -575,6 +603,7 @@ function openAddTaskModal() {
   document.getElementById('taskModal').classList.remove('hidden');
   renderProjectsSelect();
   renderStatusSelect();
+  updateSectionsList();
 }
 function closeTaskModal() {
   document.getElementById('taskModal').classList.add('hidden');
@@ -623,6 +652,7 @@ function openEditTask(id) {
   document.getElementById('taskModal').classList.remove('hidden');
   renderProjectsSelect();
   renderStatusSelect();
+  updateSectionsList();
 }
 
 function toggleArchiveTask(id) {
@@ -1019,6 +1049,64 @@ document.querySelector('.material-card .mb-3').insertAdjacentHTML('beforeend', `
   <button onclick="openCopyTasksModal()" class="bg-purple-100 hover:bg-purple-200 text-purple-800 rounded px-2 py-1 text-sm font-bold"><i class="fas fa-copy"></i> نسخ المهام</button>
   <button onclick="openAddSectionModal()" class="bg-green-100 hover:bg-green-200 text-green-800 rounded px-2 py-1 text-sm font-bold"><i class="fas fa-folder-plus"></i> إضافة قسم</button>
 `);
+
+/**
+ * تحديث قائمة الأقسام في نموذج المهمة بناءً على المشروع المحدد
+ */
+function updateSectionsList() {
+  let projectId = document.getElementById('taskProject').value;
+  let sectionSelect = document.getElementById('taskSection');
+  let projectSections = sections.filter(s => s.projectId === projectId);
+  
+  sectionSelect.innerHTML = '<option value="">بدون قسم</option>' + 
+    projectSections.map(s => `<option value="${s.id}">${s.name}</option>`).join('');
+}
+
+/**
+ * فتح نافذة إضافة قسم سريع
+ */
+function quickAddSection() {
+  let projectId = document.getElementById('taskProject').value;
+  if(!projectId) {
+    alert('الرجاء اختيار المشروع أولاً');
+    return;
+  }
+  document.getElementById('quickSectionModal').classList.remove('hidden');
+  document.getElementById('quickSectionName').focus();
+}
+
+function closeQuickSectionModal() {
+  document.getElementById('quickSectionModal').classList.add('hidden');
+}
+
+/**
+ * حفظ قسم جديد من النافذة السريعة
+ * @param {Event} e - حدث النموذج
+ */
+function saveQuickSection(e) {
+  e.preventDefault();
+  let projectId = document.getElementById('taskProject').value;
+  let name = document.getElementById('quickSectionName').value.trim();
+  
+  if(!name || !projectId) return false;
+  
+  let newSection = {
+    id: randomId('sec_'),
+    name,
+    projectId
+  };
+  
+  sections.push(newSection);
+  saveDB();
+  
+  // تحديث قائمة الأقسام وتحديد القسم الجديد
+  updateSectionsList();
+  document.getElementById('taskSection').value = newSection.id;
+  
+  closeQuickSectionModal();
+  document.getElementById('quickSectionForm').reset();
+  return false;
+}
 
 </script>
 </body>

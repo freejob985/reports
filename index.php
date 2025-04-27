@@ -30,7 +30,79 @@
     .tag {font-size: .90em; background: #ebf0f7; display:inline-block; padding:.18em .7em; border-radius:20px; margin-inline:2px;}
     .fav-yes {color:#f99c24;}
     .task-done { text-decoration: line-through; opacity: 0.8; }
-    table thead { background: #e8eaff !important; }
+    
+    /* تحسينات تصميم الجدول */
+    .tasks-table {
+      --header-bg-from: #2563eb;
+      --header-bg-to: #1d4ed8;
+      --header-text: #ffffff;
+      --footer-bg-from: #f1f5f9;
+      --footer-bg-to: #e2e8f0;
+      --row-hover: #f0f9ff;
+      --border-color: #e5e7eb;
+    }
+    
+    .tasks-table thead {
+      background: linear-gradient(to left, var(--header-bg-from), var(--header-bg-to)) !important;
+      color: var(--header-text);
+      position: relative;
+    }
+    
+    .tasks-table thead::after {
+      content: '';
+      position: absolute;
+      bottom: -5px;
+      left: 0;
+      right: 0;
+      height: 5px;
+      background: linear-gradient(to bottom, rgba(0,0,0,0.1), transparent);
+    }
+    
+    .tasks-table thead th {
+      font-weight: 700;
+      text-shadow: 1px 1px 1px rgba(0,0,0,0.2);
+      padding: 1rem !important;
+      border: none !important;
+    }
+    
+    .tasks-table tbody tr {
+      transition: all 0.2s ease;
+    }
+    
+    .tasks-table tbody tr:hover {
+      background: var(--row-hover);
+      transform: translateY(-1px);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    
+    .tasks-table tbody td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-color);
+    }
+    
+    .tasks-table tfoot {
+      background: linear-gradient(to left, var(--footer-bg-from), var(--footer-bg-to));
+      font-weight: 600;
+    }
+    
+    .tasks-table tfoot td {
+      padding: 0.75rem 1rem;
+    }
+    
+    /* تحسين أزرار العمليات */
+    .table-actions button {
+      transition: all 0.2s ease;
+      transform-origin: center;
+    }
+    
+    .table-actions button:hover {
+      transform: scale(1.05);
+    }
+    
+    .table-actions button:active {
+      transform: scale(0.95);
+    }
+    
     @media (max-width:690px) {
       html {font-size: 15px;}
       .flex-wrap-responsive { flex-wrap: wrap;}
@@ -134,7 +206,7 @@
         </div>
         <!-- TASKS TABLE + Actions-->
         <div class="material-card p-4" id="taskBoardWrap">
-          <div class="mb-3 flex flex-wrap items-center gap-2">
+          <div class="mb-3 flex flex-wrap items-center gap-2 table-actions">
               <button onclick="archiveOnes()" class="bg-gray-100 hover:bg-gray-300 text-gray-800 rounded px-2 py-1 text-sm font-bold" title="الأرشفة السريعة"><i class="fas fa-archive"></i> أرشفة المحددات</button>
               <button onclick="favOnes()" class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded px-2 py-1 text-sm font-bold" title="مفضلة"><i class="fas fa-star"></i> تمييز كمفضلة</button>
               <button onclick="deleteOnes()" class="bg-red-100 hover:bg-red-200 text-red-800 rounded px-2 py-1 text-sm font-bold" ><i class="fas fa-trash"></i> حذف المحددات</button>
@@ -142,20 +214,30 @@
               <span id="tableMsg" class="ml-auto text-gray-500 text-sm"></span>
           </div>
           <div class="overflow-x-auto">
-            <!-- Strong design for PDF/table: add stripes, hover, bolder headers, separated cells, rounded corners -->
-            <table class="min-w-full divide-y divide-gray-300 text-right border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+            <table class="min-w-full divide-y divide-gray-300 text-right border border-gray-200 rounded-xl overflow-hidden shadow-sm tasks-table">
               <thead>
-                <tr class="text-base bg-gradient-to-l from-blue-100 to-indigo-100">
-                  <th class="py-2 px-3 border-b border-gray-200"><input type="checkbox" id="selectAllTasks"></th>
-                  <th class="py-2 px-3 border-b border-gray-200">المهمة</th>
-                  <th class="py-2 px-3 border-b border-gray-200">الحالة</th>
-                  <th class="py-2 px-3 border-b border-gray-200">القسم</th>
-                  <th class="py-2 px-3 border-b border-gray-200">المشروع</th>
-                  <th class="py-2 px-3 border-b border-gray-200">عمليات</th>
+                <tr class="text-base">
+                  <th class="py-2 px-3"><input type="checkbox" id="selectAllTasks" class="rounded border-gray-300 text-blue-600 focus:ring-blue-500"></th>
+                  <th class="py-2 px-3">المهمة</th>
+                  <th class="py-2 px-3">الحالة</th>
+                  <th class="py-2 px-3">القسم</th>
+                  <th class="py-2 px-3">المشروع</th>
+                  <th class="py-2 px-3">عمليات</th>
                 </tr>
               </thead>
               <tbody id="tasksTable" class="divide-y divide-gray-100 bg-white">
               </tbody>
+              <tfoot>
+                <tr>
+                  <td colspan="6" class="text-center">
+                    <div class="flex justify-between items-center">
+                      <span>إجمالي المهام: <strong id="totalTasksCount">0</strong></span>
+                      <span>المهام المنجزة: <strong id="completedTasksCount">0</strong></span>
+                      <span>نسبة الإنجاز: <strong id="completionRate">0%</strong></span>
+                    </div>
+                  </td>
+                </tr>
+              </tfoot>
             </table>
           </div>
         </div>
@@ -441,9 +523,8 @@ function refreshAll() {
   renderStatsChart();
   renderStatuses();
   renderProjectStats();
+  updateTableFooter();
 }
-
-// ================= Renderers ========================
 
 /**
  * عرض المشاريع في خيارات الفلترة / النماذج
@@ -597,6 +678,20 @@ function renderProjectStats() {
   let percent = Math.round((done/total)*100);
   document.getElementById('progressBar').style.width = percent+'%';
   document.getElementById('progressValue').textContent = percent+"%";
+}
+
+/**
+ * تحديث إحصائيات الفوتر في الجدول
+ */
+function updateTableFooter() {
+  const filtered = filterTasks();
+  const total = filtered.length;
+  const completed = filtered.filter(t => t.statusId === 'done').length;
+  const rate = total > 0 ? Math.round((completed / total) * 100) : 0;
+
+  document.getElementById('totalTasksCount').textContent = total;
+  document.getElementById('completedTasksCount').textContent = completed;
+  document.getElementById('completionRate').textContent = rate + '%';
 }
 
 // ================== Tasks OPS =======================

@@ -10,7 +10,10 @@
   <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/toastify-js/src/toastify.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
     body { font-family:'Cairo', sans-serif; background: #f4f6fa;}
     [dir="rtl"] .material-shadow { box-shadow: 0 6px 16px 0 rgba(33,33,33,0.15);}
@@ -135,6 +138,7 @@
               <button onclick="archiveOnes()" class="bg-gray-100 hover:bg-gray-300 text-gray-800 rounded px-2 py-1 text-sm font-bold" title="الأرشفة السريعة"><i class="fas fa-archive"></i> أرشفة المحددات</button>
               <button onclick="favOnes()" class="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 rounded px-2 py-1 text-sm font-bold" title="مفضلة"><i class="fas fa-star"></i> تمييز كمفضلة</button>
               <button onclick="deleteOnes()" class="bg-red-100 hover:bg-red-200 text-red-800 rounded px-2 py-1 text-sm font-bold" ><i class="fas fa-trash"></i> حذف المحددات</button>
+              <button onclick="copyTasksToClipboard()" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 rounded px-2 py-1 text-sm font-bold" title="نسخ المهام إلى الحافظة"><i class="fas fa-clipboard"></i> نسخ إلى الحافظة</button>
               <span id="tableMsg" class="ml-auto text-gray-500 text-sm"></span>
           </div>
           <div class="overflow-x-auto">
@@ -668,10 +672,28 @@ function toggleFavTask(id) {
 }
 
 function deleteTask(id) {
-  if(confirm('هل تريد حذف المهمة؟')) {
-    tasks = tasks.filter(t=>t.id!==id);
-    saveAndRefresh();
-  }
+  Swal.fire({
+    title: 'هل تريد حذف المهمة؟',
+    text: "لا يمكن التراجع عن هذه العملية!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'نعم، احذف',
+    cancelButtonText: 'إلغاء'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      tasks = tasks.filter(t=>t.id!==id);
+      saveAndRefresh();
+      Toastify({
+        text: "تم حذف المهمة بنجاح",
+        duration: 3000,
+        gravity: "top",
+        position: 'left',
+        style: { background: "#22c55e" }
+      }).showToast();
+    }
+  });
 }
 
 // =========== Multi Task ==============
@@ -810,9 +832,39 @@ function favOnes() {
 }
 function deleteOnes() {
   let ids = getSelectedTaskIds();
-  if(ids.length==0 || !confirm("حذف المهام المحددة؟")) return;
-  tasks = tasks.filter(t=>!ids.includes(t.id));
-  saveAndRefresh();
+  if(ids.length === 0) {
+    Toastify({
+      text: "الرجاء تحديد المهام أولاً",
+      duration: 3000,
+      gravity: "top",
+      position: 'left',
+      style: { background: "#ef4444" }
+    }).showToast();
+    return;
+  }
+
+  Swal.fire({
+    title: 'حذف المهام المحددة؟',
+    text: `سيتم حذف ${ids.length} مهمة. لا يمكن التراجع عن هذه العملية!`,
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'نعم، احذف',
+    cancelButtonText: 'إلغاء'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      tasks = tasks.filter(t=>!ids.includes(t.id));
+      saveAndRefresh();
+      Toastify({
+        text: `تم حذف ${ids.length} مهمة بنجاح`,
+        duration: 3000,
+        gravity: "top",
+        position: 'left',
+        style: { background: "#22c55e" }
+      }).showToast();
+    }
+  });
 }
 
 // ============ DRAG/SORT ================
@@ -879,10 +931,28 @@ function importDB() {
  * حذف جميع قواعد البيانات والمشاريع والحالات
  */
 function deleteAllData() {
-  if(confirm('سيتم حذف جميع المهام والمشاريع والحالات!')) {
-    tasks=[]; projects=[]; statuses=DEFAULT_STATUSES.slice();
-    saveAndRefresh();
-  }
+  Swal.fire({
+    title: 'حذف كل البيانات؟',
+    text: "سيتم حذف جميع المهام والمشاريع والحالات! لا يمكن التراجع عن هذه العملية!",
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ef4444',
+    cancelButtonColor: '#6b7280',
+    confirmButtonText: 'نعم، احذف الكل',
+    cancelButtonText: 'إلغاء'
+  }).then((result) => {
+    if (result.isConfirmed) {
+      tasks=[]; projects=[]; statuses=DEFAULT_STATUSES.slice();
+      saveAndRefresh();
+      Toastify({
+        text: "تم حذف جميع البيانات بنجاح",
+        duration: 3000,
+        gravity: "top",
+        position: 'left',
+        style: { background: "#22c55e" }
+      }).showToast();
+    }
+  });
 }
 
 // =========== UTILS =============
@@ -1008,40 +1078,76 @@ function closeCopyTasksModal() {
 }
 
 /**
- * نسخ المهام المحددة أو مهام المشروع الحالي
+ * نسخ المهام المحددة أو المصفاة إلى الحافظة
+ * يستخدم طريقة بديلة للنسخ في حال عدم توفر Clipboard API
  */
-function copyTasks() {
-  let targetProjectId = document.getElementById('copyTasksProject').value;
-  if(!targetProjectId) {
-    alert('الرجاء اختيار المشروع المستهدف');
+function copyTasksToClipboard() {
+  let filtered = filterTasks();
+  if(filtered.length === 0) {
+    Toastify({
+      text: "لا توجد مهام للنسخ",
+      duration: 3000,
+      gravity: "top",
+      position: 'left',
+      style: { background: "#ef4444" }
+    }).showToast();
     return;
   }
 
-  let selectedIds = getSelectedTaskIds();
-  let tasksToCopy = selectedIds.length > 0 ? 
-    tasks.filter(t => selectedIds.includes(t.id)) :
-    tasks.filter(t => t.projectId === filter.projectId);
+  let text = filtered.map(t => {
+    let prj = projects.find(p=>p.id===t.projectId);
+    let stat = statuses.find(s=>s.id===t.statusId);
+    return `${t.title} (${prj?.name||'بدون مشروع'} - ${stat?.name||'-'})`;
+  }).join('\n');
 
-  if(tasksToCopy.length === 0) {
-    alert('لم يتم تحديد أي مهام للنسخ');
-    return;
+  // إنشاء عنصر textarea مؤقت
+  const textarea = document.createElement('textarea');
+  textarea.value = text;
+  textarea.style.position = 'fixed';
+  textarea.style.opacity = '0';
+  document.body.appendChild(textarea);
+  textarea.select();
+
+  try {
+    // محاولة النسخ باستخدام Clipboard API أولاً
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text).then(() => {
+        showCopySuccess();
+      }).catch(() => {
+        // في حال فشل Clipboard API، استخدم الطريقة التقليدية
+        document.execCommand('copy');
+        showCopySuccess();
+      });
+    } else {
+      // استخدام الطريقة التقليدية مباشرة
+      document.execCommand('copy');
+      showCopySuccess();
+    }
+  } catch (err) {
+    Toastify({
+      text: "حدث خطأ أثناء النسخ",
+      duration: 3000,
+      gravity: "top",
+      position: 'left',
+      style: { background: "#ef4444" }
+    }).showToast();
+  } finally {
+    // تنظيف العنصر المؤقت
+    document.body.removeChild(textarea);
   }
+}
 
-  let maxOrder = Math.max(...tasks.map(t => t.sortOrder || 0));
-  
-  tasksToCopy.forEach((t, idx) => {
-    tasks.push({
-      ...t,
-      id: randomId(),
-      projectId: targetProjectId,
-      sortOrder: maxOrder + idx + 1,
-      created: Date.now()
-    });
-  });
-
-  saveAndRefresh();
-  closeCopyTasksModal();
-  alert(`تم نسخ ${tasksToCopy.length} مهمة بنجاح`);
+/**
+ * عرض رسالة نجاح النسخ
+ */
+function showCopySuccess() {
+  Toastify({
+    text: `تم نسخ المهام إلى الحافظة`,
+    duration: 3000,
+    gravity: "top",
+    position: 'left',
+    style: { background: "#22c55e" }
+  }).showToast();
 }
 
 // Add new buttons to the task board actions

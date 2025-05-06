@@ -449,7 +449,28 @@
   </div>
 </div>
 
-
+<!-- Task Notes Modal -->
+<div id="taskNotesModal" class="fixed z-40 inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden">
+  <div class="material-card p-5 max-w-lg w-full relative">
+    <button class="absolute left-3 top-3 text-gray-400 hover:text-gray-800 text-xl" onclick="closeTaskNotesModal()"><i class="fas fa-times"></i></button>
+    <h3 class="text-xl font-bold mb-4">ملاحظات المهمة</h3>
+    <div id="notesList" class="mb-4 max-h-60 overflow-y-auto"></div>
+    <form id="addNoteForm" onsubmit="return addTaskNote(event)">
+      <div class="mb-2">
+        <label class="block mb-1 font-bold">نوع الملاحظة</label>
+        <select id="noteType" class="w-full px-2 py-1 border rounded">
+          <option value="text">نص</option>
+          <option value="link">رابط</option>
+          <option value="image">سكرين شوت</option>
+        </select>
+      </div>
+      <div class="mb-2" id="noteInputWrap">
+        <input type="text" id="noteContent" class="w-full px-2 py-1 border rounded" placeholder="أدخل الملاحظة">
+      </div>
+      <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-1 px-4 rounded font-bold">إضافة ملاحظة</button>
+    </form>
+  </div>
+</div>
 
 <input type="file" id="dbFileInput" class="hidden" accept=".json">
 
@@ -622,6 +643,9 @@ function renderTaskTable() {
           <button title="تعديل" class="px-2 py-1 text-blue-700 hover:text-blue-900 hover:bg-blue-100 rounded transition-colors" onclick="openEditTask('${t.id}')">
             <i class="fas fa-edit"></i>
           </button>
+          <button title="ملاحظات" class="px-2 py-1 text-indigo-700 hover:text-indigo-900 hover:bg-indigo-100 rounded transition-colors" onclick="openTaskNotesModal('${t.id}')">
+            <i class="fas fa-sticky-note"></i>
+          </button>
           <button title="أرشفة/إظهار" class="px-2 py-1 text-gray-500 hover:text-gray-800 hover:bg-gray-100 rounded transition-colors" onclick="toggleArchiveTask('${t.id}')">
             <i class="fas fa-box-archive"></i>
           </button>
@@ -760,9 +784,10 @@ function saveTask(event) {
     t.title = title; t.section = section;
     t.projectId = projectId; t.statusId = statusId;
     t.favorite = favorite;
+    if (!t.notes) t.notes = [];
   } else {
     let sortOrder = tasks.length?Math.max(...tasks.map(tt=>tt.sortOrder||0))+1:1;
-    tasks.push({id:randomId(),title,section,projectId,statusId,favorite,archived:false,created:d,sortOrder});
+    tasks.push({id:randomId(),title,section,projectId,statusId,favorite,archived:false,created:d,sortOrder, notes:[]});
   }
   saveAndRefresh();
   closeTaskModal();
@@ -1342,6 +1367,104 @@ function saveQuickSection(e) {
   document.getElementById('quickSectionForm').reset();
   return false;
 }
+
+/**
+ * فتح نافذة ملاحظات المهمة
+ * @param {string} taskId - معرف المهمة
+ */
+function openTaskNotesModal(taskId) {
+  window.currentNotesTaskId = taskId;
+  renderTaskNotes();
+  document.getElementById('taskNotesModal').classList.remove('hidden');
+}
+
+/**
+ * إغلاق نافذة الملاحظات
+ */
+function closeTaskNotesModal() {
+  document.getElementById('taskNotesModal').classList.add('hidden');
+  window.currentNotesTaskId = null;
+}
+
+/**
+ * عرض ملاحظات المهمة المحددة
+ */
+function renderTaskNotes() {
+  const task = tasks.find(t => t.id === window.currentNotesTaskId);
+  const notesDiv = document.getElementById('notesList');
+  if (!task) return;
+  if (!task.notes) task.notes = [];
+  if (task.notes.length === 0) {
+    notesDiv.innerHTML = '<div class="text-gray-400">لا توجد ملاحظات بعد.</div>';
+    return;
+  }
+  notesDiv.innerHTML = task.notes.map((note, idx) => {
+    let content = '';
+    if (note.type === 'text') content = `<span>${note.content}</span>`;
+    else if (note.type === 'link') content = `<a href="${note.content}" target="_blank" class="text-blue-600 underline">${note.content}</a>`;
+    else if (note.type === 'image') content = `<img src="${note.content}" alt="سكرين شوت" class="max-w-xs max-h-32 border rounded">`;
+    return `
+      <div class="flex items-center gap-2 mb-2 p-2 bg-gray-50 rounded">
+        <span class="font-bold text-xs bg-gray-200 px-2 py-1 rounded">${note.type === 'text' ? 'نص' : note.type === 'link' ? 'رابط' : 'سكرين شوت'}</span>
+        ${content}
+        <button onclick="deleteTaskNote(${idx})" class="ml-auto text-red-600 hover:text-red-900"><i class="fas fa-trash"></i></button>
+      </div>
+    `;
+  }).join('');
+}
+
+/**
+ * إضافة ملاحظة جديدة للمهمة
+ * @param {Event} e
+ */
+function addTaskNote(e) {
+  e.preventDefault();
+  const type = document.getElementById('noteType').value;
+  let content = document.getElementById('noteContent').value.trim();
+  if (!content) return false;
+  const task = tasks.find(t => t.id === window.currentNotesTaskId);
+  if (!task.notes) task.notes = [];
+  // إذا كانت صورة، تأكد من أنها base64 أو رابط صورة
+  if (type === 'image' && !content.startsWith('data:image/')) {
+    alert('يرجى إدخال صورة بصيغة base64 أو رابط صورة صحيح.');
+    return false;
+  }
+  task.notes.push({ type, content, date: Date.now() });
+  saveAndRefresh();
+  renderTaskNotes();
+  document.getElementById('addNoteForm').reset();
+  document.getElementById('noteType').value = 'text';
+  updateNoteInputType();
+  return false;
+}
+
+/**
+ * حذف ملاحظة من المهمة
+ * @param {number} idx - رقم الملاحظة في المصفوفة
+ */
+function deleteTaskNote(idx) {
+  const task = tasks.find(t => t.id === window.currentNotesTaskId);
+  if (!task || !task.notes) return;
+  task.notes.splice(idx, 1);
+  saveAndRefresh();
+  renderTaskNotes();
+}
+
+/**
+ * تحديث نوع حقل الإدخال حسب نوع الملاحظة
+ */
+function updateNoteInputType() {
+  const type = document.getElementById('noteType').value;
+  const wrap = document.getElementById('noteInputWrap');
+  if (type === 'text') {
+    wrap.innerHTML = `<input type="text" id="noteContent" class="w-full px-2 py-1 border rounded" placeholder="أدخل الملاحظة">`;
+  } else if (type === 'link') {
+    wrap.innerHTML = `<input type="url" id="noteContent" class="w-full px-2 py-1 border rounded" placeholder="أدخل الرابط">`;
+  } else if (type === 'image') {
+    wrap.innerHTML = `<input type="text" id="noteContent" class="w-full px-2 py-1 border rounded" placeholder="أدخل رابط الصورة أو base64">`;
+  }
+}
+document.getElementById('noteType').onchange = updateNoteInputType;
 
 </script>
 </body>

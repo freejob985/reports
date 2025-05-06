@@ -465,10 +465,12 @@
         </select>
       </div>
       <div class="mb-2" id="noteInputWrap">
-        <input type="text" id="noteContent" class="w-full px-2 py-1 border rounded" placeholder="أدخل الملاحظة">
+        <!-- سيتم توليد الحقل المناسب هنا -->
+        <textarea id="noteContent" class="w-full px-2 py-1 border rounded" placeholder="أدخل الملاحظة"></textarea>
       </div>
       <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-1 px-4 rounded font-bold">إضافة ملاحظة</button>
     </form>
+    <div id="noteImagePreview" class="mt-2"></div>
   </div>
 </div>
 
@@ -1370,24 +1372,32 @@ function saveQuickSection(e) {
 
 /**
  * فتح نافذة ملاحظات المهمة
+ * @function openTaskNotesModal
  * @param {string} taskId - معرف المهمة
+ * @returns {void}
  */
 function openTaskNotesModal(taskId) {
   window.currentNotesTaskId = taskId;
   renderTaskNotes();
   document.getElementById('taskNotesModal').classList.remove('hidden');
+  updateNoteInputType();
 }
 
 /**
  * إغلاق نافذة الملاحظات
+ * @function closeTaskNotesModal
+ * @returns {void}
  */
 function closeTaskNotesModal() {
   document.getElementById('taskNotesModal').classList.add('hidden');
   window.currentNotesTaskId = null;
+  document.getElementById('noteImagePreview').innerHTML = '';
 }
 
 /**
  * عرض ملاحظات المهمة المحددة
+ * @function renderTaskNotes
+ * @returns {void}
  */
 function renderTaskNotes() {
   const task = tasks.find(t => t.id === window.currentNotesTaskId);
@@ -1405,9 +1415,9 @@ function renderTaskNotes() {
     else if (note.type === 'image') content = `<img src="${note.content}" alt="سكرين شوت" class="max-w-xs max-h-32 border rounded">`;
     return `
       <div class="flex items-center gap-2 mb-2 p-2 bg-gray-50 rounded">
-        <span class="font-bold text-xs bg-gray-200 px-2 py-1 rounded">${note.type === 'text' ? 'نص' : note.type === 'link' ? 'رابط' : 'سكرين شوت'}</span>
         ${content}
-        <button onclick="deleteTaskNote(${idx})" class="ml-auto text-red-600 hover:text-red-900"><i class="fas fa-trash"></i></button>
+        <button onclick="deleteTaskNote(${idx})" class="ml-2 text-red-600 hover:text-red-900" style="margin-right:auto;"><i class="fas fa-trash"></i></button>
+        <span class="font-bold text-xs bg-gray-200 px-2 py-1 rounded">${note.type === 'text' ? 'نص' : note.type === 'link' ? 'رابط' : 'سكرين شوت'}</span>
       </div>
     `;
   }).join('');
@@ -1415,7 +1425,9 @@ function renderTaskNotes() {
 
 /**
  * إضافة ملاحظة جديدة للمهمة
+ * @function addTaskNote
  * @param {Event} e
+ * @returns {boolean} false لمنع إعادة تحميل الصفحة
  */
 function addTaskNote(e) {
   e.preventDefault();
@@ -1424,9 +1436,9 @@ function addTaskNote(e) {
   if (!content) return false;
   const task = tasks.find(t => t.id === window.currentNotesTaskId);
   if (!task.notes) task.notes = [];
-  // إذا كانت صورة، تأكد من أنها base64 أو رابط صورة
+  // تحقق من الصورة إذا كانت من نوع image
   if (type === 'image' && !content.startsWith('data:image/')) {
-    alert('يرجى إدخال صورة بصيغة base64 أو رابط صورة صحيح.');
+    alert('يرجى لصق صورة (Ctrl+V) أو إدخال رابط صورة بصيغة base64.');
     return false;
   }
   task.notes.push({ type, content, date: Date.now() });
@@ -1435,12 +1447,15 @@ function addTaskNote(e) {
   document.getElementById('addNoteForm').reset();
   document.getElementById('noteType').value = 'text';
   updateNoteInputType();
+  document.getElementById('noteImagePreview').innerHTML = '';
   return false;
 }
 
 /**
  * حذف ملاحظة من المهمة
+ * @function deleteTaskNote
  * @param {number} idx - رقم الملاحظة في المصفوفة
+ * @returns {void}
  */
 function deleteTaskNote(idx) {
   const task = tasks.find(t => t.id === window.currentNotesTaskId);
@@ -1452,16 +1467,48 @@ function deleteTaskNote(idx) {
 
 /**
  * تحديث نوع حقل الإدخال حسب نوع الملاحظة
+ * @function updateNoteInputType
+ * @returns {void}
  */
 function updateNoteInputType() {
   const type = document.getElementById('noteType').value;
   const wrap = document.getElementById('noteInputWrap');
+  const preview = document.getElementById('noteImagePreview');
+  preview.innerHTML = '';
   if (type === 'text') {
-    wrap.innerHTML = `<input type="text" id="noteContent" class="w-full px-2 py-1 border rounded" placeholder="أدخل الملاحظة">`;
+    // Textarea متقدمة (مجانية)
+    wrap.innerHTML = `<textarea id="noteContent" class="w-full px-2 py-1 border rounded" placeholder="أدخل الملاحظة" rows="4"></textarea>`;
   } else if (type === 'link') {
     wrap.innerHTML = `<input type="url" id="noteContent" class="w-full px-2 py-1 border rounded" placeholder="أدخل الرابط">`;
   } else if (type === 'image') {
-    wrap.innerHTML = `<input type="text" id="noteContent" class="w-full px-2 py-1 border rounded" placeholder="أدخل رابط الصورة أو base64">`;
+    wrap.innerHTML = `<input type="text" id="noteContent" class="w-full px-2 py-1 border rounded" placeholder="الصق صورة (Ctrl+V) أو أدخل base64">`;
+    // دعم لصق الصورة مباشرة
+    const input = document.getElementById('noteContent');
+    input.addEventListener('paste', function(e) {
+      if (e.clipboardData && e.clipboardData.items) {
+        for (let i = 0; i < e.clipboardData.items.length; i++) {
+          const item = e.clipboardData.items[i];
+          if (item.type.indexOf("image") !== -1) {
+            const file = item.getAsFile();
+            const reader = new FileReader();
+            reader.onload = function(event) {
+              input.value = event.target.result;
+              preview.innerHTML = `<img src="${event.target.result}" class="max-w-xs max-h-32 border rounded mt-2">`;
+            };
+            reader.readAsDataURL(file);
+            e.preventDefault();
+            break;
+          }
+        }
+      }
+    });
+    input.addEventListener('input', function() {
+      if (input.value.startsWith('data:image/')) {
+        preview.innerHTML = `<img src="${input.value}" class="max-w-xs max-h-32 border rounded mt-2">`;
+      } else {
+        preview.innerHTML = '';
+      }
+    });
   }
 }
 document.getElementById('noteType').onchange = updateNoteInputType;

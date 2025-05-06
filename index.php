@@ -14,6 +14,7 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/toastify-js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <script src="https://cdn.tiny.cloud/1/7e1mldkbut3yp4tyeob9lt5s57pb8wrb5fqbh11d6n782gm7/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
   <style>
     body { font-family:'Cairo', sans-serif; background: #f4f6fa;}
     [dir="rtl"] .material-shadow { box-shadow: 0 6px 16px 0 rgba(33,33,33,0.15);}
@@ -109,6 +110,18 @@
       .card-responsive { min-width:unset; width:100vw;}
       .hide-on-mobile {display:none;}
       table thead, table tbody, table tr, table td, table th { font-size:14px !important;}
+    }
+    .tox-tinymce {
+      border-radius: 0.5rem !important;
+      border-color: #e5e7eb !important;
+    }
+    .note-content {
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .note-content img {
+      max-width: 100%;
+      height: auto;
     }
   </style>
 </head>
@@ -451,22 +464,21 @@
 
 <!-- Task Notes Modal -->
 <div id="taskNotesModal" class="fixed z-40 inset-0 bg-black bg-opacity-40 flex items-center justify-center hidden">
-  <div class="material-card p-5 max-w-lg w-full relative">
+  <div class="material-card p-5 max-w-2xl w-full relative">
     <button class="absolute left-3 top-3 text-gray-400 hover:text-gray-800 text-xl" onclick="closeTaskNotesModal()"><i class="fas fa-times"></i></button>
     <h3 class="text-xl font-bold mb-4">ملاحظات المهمة</h3>
     <div id="notesList" class="mb-4 max-h-60 overflow-y-auto"></div>
     <form id="addNoteForm" onsubmit="return addTaskNote(event)">
       <div class="mb-2">
         <label class="block mb-1 font-bold">نوع الملاحظة</label>
-        <select id="noteType" class="w-full px-2 py-1 border rounded">
+        <select id="noteType" class="w-full px-2 py-1 border rounded" onchange="updateNoteInputType()">
           <option value="text">نص</option>
           <option value="link">رابط</option>
           <option value="image">سكرين شوت</option>
         </select>
       </div>
       <div class="mb-2" id="noteInputWrap">
-        <!-- سيتم توليد الحقل المناسب هنا -->
-        <textarea id="noteContent" class="w-full px-2 py-1 border rounded" placeholder="أدخل الملاحظة"></textarea>
+        <!-- سيتم توليد المحرر المناسب هنا -->
       </div>
       <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white py-1 px-4 rounded font-bold">إضافة ملاحظة</button>
     </form>
@@ -1475,43 +1487,158 @@ function updateNoteInputType() {
   const wrap = document.getElementById('noteInputWrap');
   const preview = document.getElementById('noteImagePreview');
   preview.innerHTML = '';
+  
   if (type === 'text') {
-    // Textarea متقدمة (مجانية)
-    wrap.innerHTML = `<textarea id="noteContent" class="w-full px-2 py-1 border rounded" placeholder="أدخل الملاحظة" rows="4"></textarea>`;
+    wrap.innerHTML = `<textarea id="noteContent" class="w-full px-2 py-1 border rounded" placeholder="أدخل الملاحظة"></textarea>`;
+    initTinyMCE();
   } else if (type === 'link') {
     wrap.innerHTML = `<input type="url" id="noteContent" class="w-full px-2 py-1 border rounded" placeholder="أدخل الرابط">`;
   } else if (type === 'image') {
     wrap.innerHTML = `<input type="text" id="noteContent" class="w-full px-2 py-1 border rounded" placeholder="الصق صورة (Ctrl+V) أو أدخل base64">`;
-    // دعم لصق الصورة مباشرة
     const input = document.getElementById('noteContent');
-    input.addEventListener('paste', function(e) {
-      if (e.clipboardData && e.clipboardData.items) {
-        for (let i = 0; i < e.clipboardData.items.length; i++) {
-          const item = e.clipboardData.items[i];
-          if (item.type.indexOf("image") !== -1) {
-            const file = item.getAsFile();
-            const reader = new FileReader();
-            reader.onload = function(event) {
-              input.value = event.target.result;
-              preview.innerHTML = `<img src="${event.target.result}" class="max-w-xs max-h-32 border rounded mt-2">`;
-            };
-            reader.readAsDataURL(file);
-            e.preventDefault();
-            break;
-          }
-        }
-      }
-    });
-    input.addEventListener('input', function() {
-      if (input.value.startsWith('data:image/')) {
-        preview.innerHTML = `<img src="${input.value}" class="max-w-xs max-h-32 border rounded mt-2">`;
-      } else {
-        preview.innerHTML = '';
-      }
-    });
+    input.addEventListener('paste', handleImagePaste);
+    input.addEventListener('input', handleImageInput);
   }
 }
-document.getElementById('noteType').onchange = updateNoteInputType;
+
+/**
+ * تهيئة محرر TinyMCE
+ * @function initTinyMCE
+ * @returns {void}
+ */
+function initTinyMCE() {
+  tinymce.init({
+    selector: '#noteContent',
+    plugins: 'lists link image table code help wordcount',
+    toolbar: 'undo redo | blocks | bold italic | alignleft aligncenter alignright | indent outdent | bullist numlist | link image | code',
+    directionality: 'rtl',
+    language: 'ar',
+    height: 300,
+    menubar: false,
+    branding: false,
+    promotion: false,
+    content_style: 'body { font-family: Cairo, sans-serif; font-size: 14px; }',
+    setup: function(editor) {
+      editor.on('change', function() {
+        editor.save();
+      });
+    }
+  });
+}
+
+/**
+ * معالجة لصق الصور
+ * @function handleImagePaste
+ * @param {ClipboardEvent} e - حدث اللصق
+ * @returns {void}
+ */
+function handleImagePaste(e) {
+  if (e.clipboardData && e.clipboardData.items) {
+    for (let i = 0; i < e.clipboardData.items.length; i++) {
+      const item = e.clipboardData.items[i];
+      if (item.type.indexOf("image") !== -1) {
+        const file = item.getAsFile();
+        const reader = new FileReader();
+        reader.onload = function(event) {
+          const input = document.getElementById('noteContent');
+          input.value = event.target.result;
+          document.getElementById('noteImagePreview').innerHTML = 
+            `<img src="${event.target.result}" class="max-w-xs max-h-32 border rounded mt-2">`;
+        };
+        reader.readAsDataURL(file);
+        e.preventDefault();
+        break;
+      }
+    }
+  }
+}
+
+/**
+ * معالجة تغيير قيمة حقل الصورة
+ * @function handleImageInput
+ * @param {Event} e - حدث التغيير
+ * @returns {void}
+ */
+function handleImageInput(e) {
+  const input = e.target;
+  if (input.value.startsWith('data:image/')) {
+    document.getElementById('noteImagePreview').innerHTML = 
+      `<img src="${input.value}" class="max-w-xs max-h-32 border rounded mt-2">`;
+  } else {
+    document.getElementById('noteImagePreview').innerHTML = '';
+  }
+}
+
+/**
+ * عرض ملاحظات المهمة
+ * @function renderTaskNotes
+ * @returns {void}
+ */
+function renderTaskNotes() {
+  const task = tasks.find(t => t.id === window.currentNotesTaskId);
+  const notesDiv = document.getElementById('notesList');
+  if (!task) return;
+  if (!task.notes) task.notes = [];
+  if (task.notes.length === 0) {
+    notesDiv.innerHTML = '<div class="text-gray-400">لا توجد ملاحظات بعد.</div>';
+    return;
+  }
+  notesDiv.innerHTML = task.notes.map((note, idx) => {
+    let content = '';
+    if (note.type === 'text') {
+      content = `<div class="note-content">${note.content}</div>`;
+    } else if (note.type === 'link') {
+      content = `<a href="${note.content}" target="_blank" class="text-blue-600 underline">${note.content}</a>`;
+    } else if (note.type === 'image') {
+      content = `<img src="${note.content}" alt="سكرين شوت" class="max-w-xs max-h-32 border rounded cursor-pointer hover:opacity-90 transition-opacity" onclick="openImageModal('${note.content}')">`;
+    }
+    return `
+      <div class="flex items-center gap-2 mb-2 p-2 bg-gray-50 rounded">
+        ${content}
+        <button onclick="deleteTaskNote(${idx})" class="ml-2 text-red-600 hover:text-red-900" style="margin-right:auto;"><i class="fas fa-trash"></i></button>
+        <span class="font-bold text-xs bg-gray-200 px-2 py-1 rounded">${note.type === 'text' ? 'نص' : note.type === 'link' ? 'رابط' : 'سكرين شوت'}</span>
+      </div>
+    `;
+  }).join('');
+}
+
+/**
+ * إضافة ملاحظة جديدة للمهمة
+ * @function addTaskNote
+ * @param {Event} e - حدث النموذج
+ * @returns {boolean} false لمنع إعادة تحميل الصفحة
+ */
+function addTaskNote(e) {
+  e.preventDefault();
+  const type = document.getElementById('noteType').value;
+  let content;
+  
+  if (type === 'text') {
+    content = tinymce.get('noteContent').getContent();
+  } else {
+    content = document.getElementById('noteContent').value.trim();
+  }
+  
+  if (!content) return false;
+  
+  const task = tasks.find(t => t.id === window.currentNotesTaskId);
+  if (!task.notes) task.notes = [];
+  
+  if (type === 'image' && !content.startsWith('data:image/')) {
+    alert('يرجى لصق صورة (Ctrl+V) أو إدخال رابط صورة بصيغة base64.');
+    return false;
+  }
+  
+  task.notes.push({ type, content, date: Date.now() });
+  saveAndRefresh();
+  renderTaskNotes();
+  document.getElementById('addNoteForm').reset();
+  document.getElementById('noteType').value = 'text';
+  updateNoteInputType();
+  document.getElementById('noteImagePreview').innerHTML = '';
+  
+  return false;
+}
 
 /**
  * فتح موديول الصورة المكبرة

@@ -1412,7 +1412,7 @@ function renderTaskNotes() {
     let content = '';
     if (note.type === 'text') content = `<span>${note.content}</span>`;
     else if (note.type === 'link') content = `<a href="${note.content}" target="_blank" class="text-blue-600 underline">${note.content}</a>`;
-    else if (note.type === 'image') content = `<img src="${note.content}" alt="سكرين شوت" class="max-w-xs max-h-32 border rounded">`;
+    else if (note.type === 'image') content = `<img src="${note.content}" alt="سكرين شوت" class="max-w-xs max-h-32 border rounded cursor-pointer hover:opacity-90 transition-opacity" onclick="openImageModal('${note.content}')">`;
     return `
       <div class="flex items-center gap-2 mb-2 p-2 bg-gray-50 rounded">
         ${content}
@@ -1513,7 +1513,43 @@ function updateNoteInputType() {
 }
 document.getElementById('noteType').onchange = updateNoteInputType;
 
+/**
+ * فتح موديول الصورة المكبرة
+ * @param {string} imageSrc - رابط الصورة المراد تكبيرها
+ */
+function openImageModal(imageSrc) {
+  const modal = document.getElementById('imageModal');
+  const modalImage = document.getElementById('modalImage');
+  modalImage.src = imageSrc;
+  modal.classList.remove('hidden');
+}
+
+/**
+ * إغلاق موديول الصورة المكبرة
+ */
+function closeImageModal() {
+  document.getElementById('imageModal').classList.add('hidden');
+}
+
+// إضافة مستمع حدث للضغط على ESC لإغلاق موديول الصورة
+window.addEventListener('keydown', function(e) {
+  if (e.key === 'Escape') {
+    closeImageModal();
+  }
+});
+
 </script>
+
+<!-- Image Modal -->
+<div id="imageModal" class="fixed z-50 inset-0 bg-black bg-opacity-75 flex items-center justify-center hidden">
+  <div class="relative max-w-4xl w-full mx-4">
+    <button class="absolute -top-10 right-0 text-white hover:text-gray-300 text-2xl" onclick="closeImageModal()">
+      <i class="fas fa-times"></i>
+    </button>
+    <img id="modalImage" src="" alt="صورة مكبرة" class="w-full h-auto rounded-lg shadow-2xl">
+  </div>
+</div>
+
 </body>
 </html>
         
